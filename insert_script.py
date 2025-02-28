@@ -55,36 +55,36 @@ def main():
     if connection is None:
         return
     tier_data = [
-
+        ## give me fake data
     ]
 
     insert_data(connection, 'TIER', tier_data )
 
     user_data = [
-
+        ## give me fake data
     ]
     insert_data(connection, 'USER', user_data )
 
     sales_data = [
-
+        ## give me fake data
     ]
 
     insert_data(connection, 'SALES_TRANSACTION', sales_data )
 
     machine_data = [
-
+        ## give me fake data
     ]
 
     insert_data(connection, 'MACHINE', machine_data)
 
     tasks_data = [
-
+        ## give me fake data
     ]
 
     insert_data(connection, 'Tasks', tasks_data )
 
     executes_data = [
-
+        ## give me fake data
     ]
 
     insert_data(connection, 'Executes', executes_data )
