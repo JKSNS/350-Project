@@ -1,0 +1,11 @@
+DELETE FROM "SALES TRANSACTION" WHERE CryptoUsed = 'BTC';
+
+DELETE FROM "TIER" WHERE TierLevel = 1;
+
+DELETE FROM "USER" WHERE Refers_Username IS NULL;
+
+DELETE FROM "Tasks" WHERE TaskType = 'crypto miner';
+
+DELETE FROM "MACHINE" WHERE LastCheckIn = '2025-02-28';
+
+DELETE FROM "Executes" WHERE TaskID IS NULL;
