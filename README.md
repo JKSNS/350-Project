@@ -1,4 +1,4 @@
-# 350-Project/ CNC SAAS
+# 350-Project: CNC SAAS
 
 A command-and-control SaaS platform that allows users to manage, monitor, and execute commands on their fleet of infected machines.
 
