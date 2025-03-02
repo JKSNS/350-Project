@@ -4,17 +4,6 @@ A command-and-control SaaS platform that allows users to manage, monitor, and ex
 
 ---
 
-## Table of Contents
-
-- [Project Overview](#project-overview)
-- [Objective Statement](#objective-statement)
-- [Stakeholders](#stakeholders)
-- [App Requirements](#app-requirements)
-- [Database & Business Rules](#database--business-rules)
-- [Appendix](#appendix)
-
----
-
 ## Project Overview
 
 This project is designed to create a robust command-and-control application.
@@ -30,4 +19,3 @@ Build a comprehensive platform for:
 - Ensuring secure and scalable system architecture.
 
 ---
-
