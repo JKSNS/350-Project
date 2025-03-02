@@ -1,1 +1,33 @@
-# 350-Project
+# 350-Project/ CNC SAAS
+
+A command-and-control SaaS platform that allows users to manage, monitor, and execute commands on their fleet of infected machines.
+
+---
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Objective Statement](#objective-statement)
+- [Stakeholders](#stakeholders)
+- [App Requirements](#app-requirements)
+- [Database & Business Rules](#database--business-rules)
+- [Appendix](#appendix)
+
+---
+
+## Project Overview
+
+This project is designed to create a robust command-and-control application.
+
+---
+
+## Objective Statement
+
+Build a comprehensive platform for:
+- Managing infected machines,
+- Executing command and control tasks,
+- Providing role-based access for administrators and customers,
+- Ensuring secure and scalable system architecture.
+
+---
+
