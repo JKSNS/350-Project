@@ -1,4 +1,4 @@
-INSERT INTO "SALES TRANSACTION" (TransactionID, TimeOfTransaction, CryptoUsed, Amount, Username, TierID)
+INSERT INTO "SALES_TRANSACTION" (TransactionID, TimeOfTransaction, CryptoUsed, Amount, Username, TierID)
 VALUES (1, '2025-02-28', 'BTC', 0.01, 'atay001', 1);
 
 INSERT INTO "TIER" (TierID, TierName, TierLevel)
