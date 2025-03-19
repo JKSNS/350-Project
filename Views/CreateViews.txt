@@ -3,17 +3,17 @@ SELECT TIER.TierName, MACHINE.MachineID, MACHINE.OperatingSystem, MACHINE.IPAddr
 FROM USERS
 INNER JOIN TIER ON USERS.TierID = TIER.TierID
 INNER JOIN MACHINE ON USERS.Username = MACHINE.Username
-INNER JOIN Tasks ON USERS.Username = Tasks.Username
+INNER JOIN Tasks ON USERS.Username = Tasks.Username;
 
 CREATE OR REPLACE VIEW machine_details AS
 SELECT MACHINE.MachineID, MACHINE.IPAddress, MACHINE.LastCheckIn, USERS.Username, USERS.Email, Tasks.TaskID, Tasks.TaskType
 FROM MACHINE
 INNER JOIN USERS ON USERS.Username = MACHINE.Username
-INNER JOIN Tasks ON Tasks.Username = USERS.Username
+INNER JOIN Tasks ON Tasks.Username = USERS.Username;
 
 CREATE OR REPLACE VIEW admin_overview AS
 SELECT USERS.Username, USERS.Email, USERS.Refers_Username, TIER.TierLevel, COUNT(MACHINE.MachineID)
 FROM USERS
 INNER JOIN TIER ON USERS.TierID = TIER.TierID
 INNER JOIN MACHINE ON USERS.Username = MACHINE.Username
-GROUP BY USERS.Username
+GROUP BY USERS.Username;
