@@ -4,7 +4,7 @@ VALUES (1, '2025-02-28', 'XMR', 0.01, 'atay001', 1);
 INSERT INTO TIER (TierID, TierName, TierLevel)
 VALUES (1, 'Basic', 1);
 
-INSERT INTO USER (Username, Password, Email, TierID, Refers_Username)
+INSERT INTO USERS (Username, Password, Email, TierID, Refers_Username)
 VALUES ('atay001', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'atay001@example.com', 1, null);
 
 INSERT INTO TASKS (TaskID, TaskType, Username)
