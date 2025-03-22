@@ -4,14 +4,14 @@ VALUES (1, '2025-02-28', 'XMR', 0.01, 'atay001', 1);
 INSERT INTO TIER (TierID, TierName, TierLevel)
 VALUES (1, 'Basic', 1);
 
-INSERT INTO USER (Username, Password, Email, TierID, Refers_Username)
+INSERT INTO USERS (Username, Password, Email, TierID, Refers_Username)
 VALUES ('atay001', '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8', 'atay001@example.com', 1, null);
 
-INSERT INTO Tasks (TaskID, TaskType, Username)
+INSERT INTO TASKS (TaskID, TaskType, Username)
 VALUES (1, 'keylogger', 'atay001');
 
 INSERT INTO MACHINE (MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, Cores, Ram, TierID, Username)
 VALUES (1, '192.168.0.11', '2025-02-28', 'Windows 11', '24H2', 4, 32, 1, 'atay001');
 
-INSERT INTO Executes (TaskID, MachineID)
+INSERT INTO EXECUTES (TaskID, MachineID)
 VALUES (1, 1);
