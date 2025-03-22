@@ -14,7 +14,7 @@ INNER JOIN Tasks ON Tasks.Username = USERS.Username;
 CREATE OR REPLACE VIEW task_execution AS
 SELECT Tasks.TaskID, Tasks.TaskType, Executes.MachineID
 FROM Tasks
-INNER JOIN Executes ON Tasks.TaskID = Executes.TaskID
+INNER JOIN Executes ON Tasks.TaskID = Executes.TaskID;
 
 CREATE OR REPLACE VIEW admin_overview AS
 SELECT USERS.Username, USERS.Email, USERS.Refers_Username, TIER.TierLevel, COUNT(MACHINE.MachineID)
