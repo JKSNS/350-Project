@@ -1,86 +1,175 @@
-
-# app.py
 import os
 import time
 import uuid
 import json
 from datetime import datetime
+import mysql.connector
 from flask import Flask, render_template, request, jsonify, Response
-from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from pathlib import Path
 
 # Load environment variables
-env_path = Path('.') / '.env'
-load_dotenv(dotenv_path=env_path)
+load_dotenv()
 
+# Initialize Flask app
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 
-# Configure MySQL
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_URI', 'mysql://user:password@localhost/c2db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+# ------------------------ BEGIN DATABASE FUNCTIONS ------------------------ #
+# Function to retrieve DB connection
+def get_db_connection():
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", ""),
+        database=os.getenv("DB_DATABASE", "c2db")
+    )
+    return conn
 
-# Define Models
-class Task(db.Model):
-    __tablename__ = 'tasks'
+# Function to create tables if they don't exist
+def create_tables():
+    conn = get_db_connection()
+    cursor = conn.cursor()
     
-    id = db.Column(db.Integer, primary_key=True)
-    task_id = db.Column(db.String(36), unique=True, nullable=False)
-    description = db.Column(db.String(255), nullable=False)
-    status = db.Column(db.String(50), nullable=False)
-    assigned_at = db.Column(db.BigInteger, nullable=False)
-    agent_id = db.Column(db.Integer, db.ForeignKey('agents.id'), nullable=False)
-
-class Agent(db.Model):
-    __tablename__ = 'agents'
+    # Create agents table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS agents (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        uuid VARCHAR(36) UNIQUE NOT NULL,
+        ip_address VARCHAR(50) NOT NULL,
+        last_checkin BIGINT NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        os VARCHAR(50),
+        os_version VARCHAR(50),
+        web_shell_active BOOLEAN DEFAULT false
+    )
+    ''')
     
-    id = db.Column(db.Integer, primary_key=True)
-    uuid = db.Column(db.String(36), unique=True, nullable=False)
-    ip_address = db.Column(db.String(50), nullable=False)
-    last_checkin = db.Column(db.BigInteger, nullable=False)
-    status = db.Column(db.String(50), nullable=False)
-    os = db.Column(db.String(50), nullable=True)
-    os_version = db.Column(db.String(50), nullable=True)
-    web_shell_active = db.Column(db.Boolean, default=False)
+    # Create tasks table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        task_id VARCHAR(36) UNIQUE NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        assigned_at BIGINT NOT NULL,
+        agent_id INT NOT NULL,
+        FOREIGN KEY (agent_id) REFERENCES agents(id)
+    )
+    ''')
     
-    # Relationship with Task model
-    tasks = db.relationship('Task', backref='agent', lazy=True)
+    conn.commit()
+    conn.close()
 
-# Routes
+# Function to get all agents with their tasks
+def get_all_agents():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # Query agents
+    query = "SELECT id, uuid, ip_address, last_checkin, status, os, os_version, web_shell_active FROM agents"
+    cursor.execute(query)
+    agents_data = cursor.fetchall()
+    
+    # For each agent, get their tasks
+    for agent in agents_data:
+        agent_id = agent['id']
+        query = "SELECT task_id, description, status, assigned_at FROM tasks WHERE agent_id = %s"
+        cursor.execute(query, (agent_id,))
+        tasks = cursor.fetchall()
+        
+        # Convert to format matching the original app
+        agent['ID'] = agent.pop('uuid')
+        agent['IPAddress'] = agent.pop('ip_address')
+        agent['LastCheckin'] = agent.pop('last_checkin')
+        agent['Status'] = agent.pop('status')
+        agent['Os'] = agent.pop('os')
+        agent['OsVersion'] = agent.pop('os_version')
+        agent['WebShellActive'] = agent.pop('web_shell_active')
+        agent['Tasks'] = []
+        
+        for task in tasks:
+            task_data = {
+                'TaskID': task['task_id'],
+                'Description': task['description'],
+                'Status': task['status'],
+                'AssignedAt': task['assigned_at']
+            }
+            agent['Tasks'].append(task_data)
+    
+        # Remove internal database ID
+        agent.pop('id')
+        
+    conn.close()
+    return agents_data
+
+# Function to insert or update agent
+def save_agent(agent_uuid, ip_address, status, os_name=None, os_version=None, web_shell_active=False):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    # Check if agent exists
+    query = "SELECT id FROM agents WHERE uuid = %s"
+    cursor.execute(query, (agent_uuid,))
+    result = cursor.fetchone()
+    
+    if result:
+        # Update existing agent
+        query = """
+        UPDATE agents 
+        SET ip_address = %s, last_checkin = %s, status = %s, os = %s, os_version = %s, web_shell_active = %s
+        WHERE uuid = %s
+        """
+        cursor.execute(query, (ip_address, int(time.time()), status, os_name, os_version, web_shell_active, agent_uuid))
+        agent_id = result['id']
+    else:
+        # Insert new agent
+        query = """
+        INSERT INTO agents (uuid, ip_address, last_checkin, status, os, os_version, web_shell_active)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (agent_uuid, ip_address, int(time.time()), status, os_name, os_version, web_shell_active))
+        agent_id = cursor.lastrowid
+    
+    conn.commit()
+    conn.close()
+    return agent_id
+
+# Function to add a task for an agent
+def add_task(agent_id, task_id, description, status="Pending"):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = """
+    INSERT INTO tasks (task_id, description, status, assigned_at, agent_id)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    cursor.execute(query, (task_id, description, status, int(time.time()), agent_id))
+    
+    conn.commit()
+    conn.close()
+
+# Function to update task status
+def update_task_status(task_id, status):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    query = "UPDATE tasks SET status = %s WHERE task_id = %s"
+    cursor.execute(query, (status, task_id))
+    
+    conn.commit()
+    conn.close()
+
+# ------------------------ END DATABASE FUNCTIONS ------------------------ #
+
+# ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/displayagents', methods=['GET'])
 def display_agents():
-    agents = Agent.query.all()
-    result = []
-    
-    for agent in agents:
-        agent_data = {
-            'ID': agent.uuid,
-            'IPAddress': agent.ip_address,
-            'LastCheckin': agent.last_checkin,
-            'Status': agent.status,
-            'Os': agent.os,
-            'OsVersion': agent.os_version,
-            'WebShellActive': agent.web_shell_active,
-            'Tasks': []
-        }
-        
-        for task in agent.tasks:
-            task_data = {
-                'TaskID': task.task_id,
-                'Description': task.description,
-                'Status': task.status,
-                'AssignedAt': task.assigned_at
-            }
-            agent_data['Tasks'].append(task_data)
-            
-        result.append(agent_data)
-    
-    return jsonify(result)
+    agents = get_all_agents()
+    return jsonify(agents)
 
 @app.route('/checkin', methods=['POST'])
 def checkin_handler():
@@ -98,29 +187,13 @@ def get_device_info():
         os_name = data.get('os', '')
         os_version = data.get('os_version', '')
         
-        # Check if agent exists
-        agent = Agent.query.filter_by(uuid=agent_uuid).first()
-        
-        if agent:
-            # Update existing agent
-            agent.ip_address = ip_address
-            agent.last_checkin = int(time.time())
-            agent.os = os_name
-            agent.os_version = os_version
-        else:
-            # Create new agent
-            agent = Agent(
-                uuid=agent_uuid,
-                ip_address=ip_address,
-                last_checkin=int(time.time()),
-                status="Active",
-                os=os_name,
-                os_version=os_version,
-                web_shell_active=False
-            )
-            db.session.add(agent)
-        
-        db.session.commit()
+        save_agent(
+            agent_uuid=agent_uuid,
+            ip_address=ip_address,
+            status="Active",
+            os_name=os_name,
+            os_version=os_version
+        )
         
         return jsonify({"status": "success", "agent_id": agent_uuid})
     
@@ -141,51 +214,58 @@ def declare_status():
         if not agent_uuid:
             return jsonify({"status": "error", "message": "UUID required"}), 400
         
-        agent = Agent.query.filter_by(uuid=agent_uuid).first()
+        status = data.get('status', 'Active')
+        ip_address = request.remote_addr
         
-        if agent:
-            agent.last_checkin = int(time.time())
-            agent.status = data.get('status', agent.status)
-            db.session.commit()
-            return jsonify({"status": "success"})
+        save_agent(
+            agent_uuid=agent_uuid,
+            ip_address=ip_address,
+            status=status
+        )
         
-        return jsonify({"status": "error", "message": "Agent not found"}), 404
+        return jsonify({"status": "success"})
     
     return jsonify({"status": "error", "message": "Method not allowed"}), 405
 
-def setup_database():
-    with app.app_context():
-        # Create tables
-        db.create_all()
-        
-        # Check if we need to add a test agent
-        if Agent.query.count() == 0:
-            # Add a test agent
-            test_agent = Agent(
-                uuid=str(uuid.uuid4()),
-                ip_address="192.168.23.14",
-                last_checkin=int(time.time()),
-                status="Active",
-                os="Windows 10",
-                os_version="10.3.5",
-                web_shell_active=False
-            )
-            db.session.add(test_agent)
-            db.session.commit()
-            
-            # Add a test task for this agent
-            test_task = Task(
-                task_id="001",
-                description="Vuln Scan",
-                status="In Progress",
-                assigned_at=int(time.time()),
-                agent_id=test_agent.id
-            )
-            db.session.add(test_task)
-            db.session.commit()
-            
-            print("Test agent and task created successfully")
+# ------------------------ END ROUTES ------------------------ #
 
+# ------------------------ DATABASE SETUP ------------------------ #
+def setup_database():
+    # Create tables
+    create_tables()
+    
+    # Check if we need to add a test agent
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # Check if any agents exist
+    cursor.execute("SELECT COUNT(*) FROM agents")
+    agent_count = cursor.fetchone()[0]
+    
+    if agent_count == 0:
+        # Add a test agent
+        test_uuid = str(uuid.uuid4())
+        agent_id = save_agent(
+            agent_uuid=test_uuid,
+            ip_address="192.168.23.14",
+            status="Active",
+            os_name="Windows 10",
+            os_version="10.3.5"
+        )
+        
+        # Add a test task
+        add_task(
+            agent_id=agent_id,
+            task_id="001",
+            description="Vuln Scan",
+            status="In Progress"
+        )
+        
+        print("Test agent and task created successfully")
+    
+    conn.close()
+
+# ------------------------ MAIN ------------------------ #
 if __name__ == '__main__':
     setup_database()
-    app.run(host='0.0.0.0', port=443, ssl_context='adhoc')
+    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 443)), ssl_context='adhoc')
