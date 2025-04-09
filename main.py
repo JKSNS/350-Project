@@ -51,7 +51,7 @@ def get_all_agents():
     # For each agent, get their tasks
     for machine in machine_data:
         MachineID = machine['MachineID']
-        query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE MachineID = %s"
+        query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
         cursor.execute(query, (MachineID,))
         tasks = cursor.fetchall()
         
