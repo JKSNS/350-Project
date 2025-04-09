@@ -41,39 +41,36 @@ def setup_database():
 # Function to get all agents with their tasks
 def get_all_agents():
     conn = get_db_connection()
-    print('ok we\'re here')
     cursor = conn.cursor(dictionary=True)
     
     # Query agents
-    query = "SELECT id, uuid, ip_address, last_checkin, status, os, os_version, web_shell_active FROM agents"
+    query = "SELECT MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, TierID FROM MACHINE"
     cursor.execute(query)
-    agents_data = cursor.fetchall()
+    machine_data = cursor.fetchall()
     
     # For each agent, get their tasks
-    for agent in agents_data:
-        agent_id = agent['id']
-        query = "SELECT task_id, description, status, assigned_at FROM tasks WHERE agent_id = %s"
-        cursor.execute(query, (agent_id,))
+    for machine in machine_data:
+        MachineID = machine['id']
+        query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE MachineID = %s"
+        cursor.execute(query, (MachineID,))
         tasks = cursor.fetchall()
         
         # Convert to format matching the original app
-        agent['ID'] = agent.pop('uuid')
-        agent['IPAddress'] = agent.pop('ip_address')
-        agent['LastCheckin'] = agent.pop('last_checkin')
-        agent['Status'] = agent.pop('status')
-        agent['Os'] = agent.pop('os')
-        agent['OsVersion'] = agent.pop('os_version')
-        agent['WebShellActive'] = agent.pop('web_shell_active')
-        agent['Tasks'] = []
+        machine['ID'] = machine.pop('MachineID')
+        machine['IPAddress'] = machine.pop('IPAddress')
+        machine['LastCheckin'] = machine.pop('LastCheckIn')
+        machine['Os'] = machine.pop('OperatingSystem')
+        machine['OsVersion'] = machine.pop('Version')
+        machine['TierID'] = machine.pop('TierID')
+        machine['Tasks'] = []
         
         for task in tasks:
             task_data = {
-                'TaskID': task['task_id'],
-                'Description': task['description'],
-                'Status': task['status'],
-                'AssignedAt': task['assigned_at']
+                'TaskID': task['TaskID'],
+                'Description': task['TaskType'],
+                'AssignedBy': task['Username']
             }
-            agent['Tasks'].append(task_data)
+            machine['Tasks'].append(task_data)
     
         # Remove internal database ID
         agent.pop('id')
