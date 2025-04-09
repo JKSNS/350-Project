@@ -18,12 +18,24 @@ app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 # Function to retrieve DB connection
 def get_db_connection():
     conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", ""),
-        database=os.getenv("DB_DATABASE", "c2db")
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_DATABASE")
     )
     return conn
+
+def setup_database():
+    # Just check if we can connect to the database
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")  # Simple query to test connection
+        conn.close()
+        print("Database connection successful")
+    except mysql.connector.Error as e:
+        print(f"Error connecting to database: {e}")
+        exit(1)
 
 
 # Function to get all agents with their tasks
