@@ -25,40 +25,6 @@ def get_db_connection():
     )
     return conn
 
-# Function to create tables if they don't exist
-def create_tables():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Create agents table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS agents (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        uuid VARCHAR(36) UNIQUE NOT NULL,
-        ip_address VARCHAR(50) NOT NULL,
-        last_checkin BIGINT NOT NULL,
-        status VARCHAR(50) NOT NULL,
-        os VARCHAR(50),
-        os_version VARCHAR(50),
-        web_shell_active BOOLEAN DEFAULT false
-    )
-    ''')
-    
-    # Create tasks table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS tasks (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        task_id VARCHAR(36) UNIQUE NOT NULL,
-        description VARCHAR(255) NOT NULL,
-        status VARCHAR(50) NOT NULL,
-        assigned_at BIGINT NOT NULL,
-        agent_id INT NOT NULL,
-        FOREIGN KEY (agent_id) REFERENCES agents(id)
-    )
-    ''')
-    
-    conn.commit()
-    conn.close()
 
 # Function to get all agents with their tasks
 def get_all_agents():
@@ -229,41 +195,6 @@ def declare_status():
 
 # ------------------------ END ROUTES ------------------------ #
 
-# ------------------------ DATABASE SETUP ------------------------ #
-def setup_database():
-    # Create tables
-    create_tables()
-    
-    # Check if we need to add a test agent
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # Check if any agents exist
-    cursor.execute("SELECT COUNT(*) FROM agents")
-    agent_count = cursor.fetchone()[0]
-    
-    if agent_count == 0:
-        # Add a test agent
-        test_uuid = str(uuid.uuid4())
-        agent_id = save_agent(
-            agent_uuid=test_uuid,
-            ip_address="192.168.23.14",
-            status="Active",
-            os_name="Windows 10",
-            os_version="10.3.5"
-        )
-        
-        # Add a test task
-        add_task(
-            agent_id=agent_id,
-            task_id="001",
-            description="Vuln Scan",
-            status="In Progress"
-        )
-        
-        print("Test agent and task created successfully")
-    
-    conn.close()
 
 # ------------------------ MAIN ------------------------ #
 if __name__ == '__main__':
