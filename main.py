@@ -1,3 +1,7 @@
+# only get_all_agents has been modified to be compatible with our db
+# still need all login, account, views, and action logic
+
+
 import os
 import time
 import uuid
@@ -7,7 +11,7 @@ import mysql.connector
 from flask import Flask, render_template, request, jsonify, Response
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables 
 load_dotenv()
 
 # Initialize Flask app
