@@ -73,7 +73,7 @@ def get_all_agents():
             machine['Tasks'].append(task_data)
     
         # Remove internal database ID
-        agent.pop('id')
+        machine.pop('id')
         
     conn.close()
     return agents_data
