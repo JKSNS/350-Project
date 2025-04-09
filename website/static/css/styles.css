@@ -9,9 +9,9 @@ table, th, td {
 }
 
 .alert {
-    padding: 10px; /* Padding for spacing inside the message box */
-    margin-bottom: 15px; /* Margin at the bottom to create space between the message and other content */
-    border-radius: 4px; /* Rounded corners for a softer look */
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
 }
 
 .alert.success {
@@ -35,10 +35,9 @@ table, th, td {
 .page-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     text-align: center;
-    min-height: 90vh;
+    min-height: 95vh;
 }
 
 .login-wrapper {
@@ -60,6 +59,69 @@ table, th, td {
     display: flex;
     justify-content: center;
     align-items: center;
+    min-width: 100vw;
+    min-height: 10vh;
+    border: 0.25vh solid black;
+}
+
+.machine-table {
+    border: 0.25vh solid black;
+    margin: 0.5vh;
+}
+
+.task-option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.task-input-head {
+    float: inline;
+    margin-right: 2vw;
+}
+
+.task-input {
+    float: inline;
+}
+
+.admin-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+    border: 0.25vh solid black;
+    min-width: 50vw;
+    min-height: 82.5vh;
+}
+
+.machine-option {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.machine-input-head {
+    float: inline;
+    margin-right: 2vw;
+}
+
+.machine-input {
+    float: inline;
+}
+
+.account-info-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.account-info-label {
+    float: inline;
+    margin-right: 2vw;
+}
+
+.account-info {
+    float: inline;
 }
 
 #admin-button {
@@ -84,4 +146,27 @@ table, th, td {
 
 #inactive-machines {
     color: red;
+}
+
+#task-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: left;
+}
+
+#admin-sections {
+    display: flex;
+    justify-content: center;
+    width: 100vw;
+}
+
+#chng-pswd {
+    margin-bottom: 5vh;
+}
+
+#del-acct {
+    background-color: red;
+    color: white;
+    font-weight: bold;
 }

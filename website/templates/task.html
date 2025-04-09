@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Page</title>
+    <title>Task</title>
     <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
@@ -12,6 +12,36 @@
             <h1 id="head-bar-header">Task Dashboard</h1>
             <button type="submit" id="admin-button">Admin</button>
             <button type="submit" id="sign-out-button">Sign Out</button>
+        </div>
+        <h2>Add New Task</h2>
+        <div id="task-container">
+            <div class="task-option">
+                <h3 class="task-input-head">Task Name:</h3>
+                <input type="text" placeholder="Input task name" class="task-input" id="tsk-name" required>
+            </div>
+            <div class="task-option">
+                <h3 class="task-input-head">Machine Name:</h3>
+                <input type="text" placeholder="Input machine name" class="task-input" id="comp-name" required>
+            </div>
+            <div class="task-option">
+                <h3 class="task-input-head">Command:</h3>
+                <select class="task-input" id="cmd" required>
+                    <option value="1">Filler 1</option>
+                    <option value="2">Filler 2</option>
+                    <option value="3">Filler 3</option>
+                </select>
+            </div>
+            <div class="task-option">
+                <h3 class="task-input-head">Scheduled At:</h3>
+                <input type="datetime-local" class="task-input" id="tsk-time" required>
+                <!-- Javascript to dynamically set the minimum input datetime to the current datetime -->
+                <script>
+                    const now = new Date()
+                    const minDate = now.toISOString().slice(0, 16) // Get current datetime in ISO 8601 format
+                    document.getElementById('tsk-time').setAttribute('min', minDate)
+                </script>
+            </div>
+            <button type="submit">Submit</button>
         </div>
     </div>
 </body>

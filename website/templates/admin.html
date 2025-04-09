@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Page</title>
+    <title>Admin</title>
     <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
@@ -12,6 +12,45 @@
             <h1 id="head-bar-header">Admin Dashboard</h1>
             <button type="submit" id="admin-button">Admin</button>
             <button type="submit" id="sign-out-button">Sign Out</button>
+        </div>
+        <div id="admin-sections">
+            <div class="admin-container">
+                <h2>Add New Machine</h2>
+                <div class="machine-option">
+                    <h3 class="machine-input-head">Name:</h3>
+                    <input type="text" placeholder="Input machine name" class="machine-input" id="mch-name" required>
+                </div>
+                <div class="machine-option">
+                    <h3 class="machine-input-head">IP:</h3>
+                    <input type="text" placeholder="Input IP address" class="machine-input" id="mch-ip" required>
+                </div>
+                <div class="machine-option">
+                    <h3 class="machine-input-head">OS:</h3>
+                    <input type="text" placeholder="Input operating system" class="machine-input" id="mch-os" required>
+                </div>
+                <div class="machine-option">
+                    <h3 class="machine-input-head">OS Version:</h3>
+                    <input type="text" placeholder="Input operating system version" class="machine-input" id="mch-os-ver" required>
+                </div>
+                <div class="machine-option">
+                    <h3 class="machine-input-head">Check In:</h3>
+                    <input type="datetime-local" class="machine-input" id="mch-time" required>
+                </div>
+                <button type="submit">Submit</button>
+            </div>
+            <div class="admin-container">
+                <h2>Account Info</h2>
+                <div class="account-info-container">
+                    <h3 class="account-info-label">Username:</h3>
+                    <p class="account-info">Filler</p>
+                </div>
+                <div class="account-info-container">
+                    <h3 class="account-info-label">Email:</h3>
+                    <p class="account-info">filler@filler.com</p>
+                </div>
+                <button type="submit" id="chng-pswd">Change Password</button>
+                <button type="submit" id="del-acct">Delete Account</button>
+            </div>
         </div>
     </div>
 </body>
