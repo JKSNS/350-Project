@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C2 Server</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #ddd;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .header h1 {
+            color: #00a2ff;
+        }
+        .agent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .agent-card {
+            background-color: #252525;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #333;
+        }
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .agent-status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .agent-status.active {
+            background-color: #28a745;
+            color: white;
+        }
+        .agent-status.inactive {
+            background-color: #dc3545;
+            color: white;
+        }
+        .agent-details {
+            margin-bottom: 15px;
+        }
+        .agent-detail {
+            display: flex;
+            margin-bottom: 5px;
+        }
+        .detail-label {
+            width: 100px;
+            color: #888;
+        }
+        .task-list {
+            background-color: #2a2a2a;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        .task-item {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+        }
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        .refresh-btn {
+            background-color: #2c7be5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .refresh-btn:hover {
+            background-color: #1a68d1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>C2 Control Panel</h1>
+            <button id="refreshBtn" class="refresh-btn">Refresh Agents</button>
+        </div>
+        
+        <div class="agent-grid" id="agentContainer">
+            <!-- Agents will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Function to format timestamp
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString();
+        }
+
+        // Function to load agents
+        async function loadAgents() {
+            try {
+                const response = await fetch('/displayagents');
+                const agents = await response.json();
+                
+                const agentContainer = document.getElementById('agentContainer');
+                agentContainer.innerHTML = '';
+                
+                if (agents.length === 0) {
+                    agentContainer.innerHTML = '<p>No agents found</p>';
+                    return;
+                }
+                
+                agents.forEach(agent => {
+                    const isActive = (Date.now() / 1000) - agent.LastCheckin < 300; // 5 minutes
+                    
+                    const agentCard = document.createElement('div');
+                    agentCard.className = 'agent-card';
+                    
+                    agentCard.innerHTML = `
+                        <div class="agent-header">
+                            <h3>${agent.IPAddress}</h3>
+                            <span class="agent-status ${isActive ? 'active' : 'inactive'}">${isActive ? 'Active' : 'Inactive'}</span>
+                        </div>
+                        <div class="agent-details">
+                            <div class="agent-detail">
+                                <span class="detail-label">ID:</span>
+                                <span>${agent.ID}</span>
+                            </div>
+                            <div class="agent-detail">
+                                <span class="detail-label">OS:</span>
+                                <span>${agent.Os} ${agent.OsVersion}</span>
+                            </div>
+                            <div class="agent-detail">
+                                <span class="detail-label">Last Seen:</span>
+                                <span>${formatTimestamp(agent.LastCheckin)}</span>
+                            </div>
+                            <div class="agent-detail">
+                                <span class="detail-label">Web Shell:</span>
+                                <span>${agent.WebShellActive ? 'Active' : 'Inactive'}</span>
+                            </div>
+                        </div>
+                        <h4>Tasks</h4>
+                        <div class="task-list">
+                            ${agent.Tasks.length > 0 ? 
+                                agent.Tasks.map(task => `
+                                    <div class="task-item">
+                                        <div><strong>${task.Description}</strong> (${task.TaskID})</div>
+                                        <div>Status: ${task.Status}</div>
+                                        <div>Assigned: ${formatTimestamp(task.AssignedAt)}</div>
+                                    </div>
+                                `).join('') : 
+                                '<p>No tasks assigned</p>'
+                            }
+                        </div>
+                    `;
+                    
+                    agentContainer.appendChild(agentCard);
+                });
+            } catch (error) {
+                console.error('Error loading agents:', error);
+            }
+        }
+        
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAgents();
+            
+            // Set up refresh button
+            document.getElementById('refreshBtn').addEventListener('click', loadAgents);
+            
+            // Auto refresh every 30 seconds
+            setInterval(loadAgents, 30000);
+        });
+    </script>
+</body>
+</html>
