@@ -10,8 +10,10 @@
     <div class="page-container">
         <div class="head-bar">
             <h1 id="head-bar-header">Task Dashboard</h1>
-            <button type="submit" id="admin-button">Admin</button>
-            <button type="submit" id="sign-out-button">Sign Out</button>
+            <div class="head-bar-buttons">
+                <button type="submit" id="admin-button">Admin</button>
+                <button type="submit" id="sign-out-button">Sign Out</button>
+            </div>
         </div>
         <h2>Add New Task</h2>
         <div id="task-container">
@@ -41,7 +43,7 @@
                     document.getElementById('tsk-time').setAttribute('min', minDate)
                 </script>
             </div>
-            <button type="submit">Submit</button>
+            <button type="submit" id="task-button">Submit</button>
         </div>
     </div>
 </body>
