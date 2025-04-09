@@ -76,7 +76,7 @@ def get_all_agents():
         # machine.pop('MachineID')
         
     conn.close()
-    return agents_data
+    return machine_data
 
 # Function to insert or update agent
 def save_agent(agent_uuid, ip_address, status, os_name=None, os_version=None, web_shell_active=False):
