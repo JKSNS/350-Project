@@ -145,6 +145,7 @@ def index():
 @app.route('/displayagents', methods=['GET'])
 def display_agents():
     agents = get_all_agents()
+    print(jsonify(agents))
     return jsonify(agents)
 
 @app.route('/checkin', methods=['POST'])
