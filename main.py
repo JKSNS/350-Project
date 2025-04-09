@@ -41,7 +41,7 @@ def setup_database():
 # Function to get all agents with their tasks
 def get_all_agents():
     conn = get_db_connection()
-    print('ok we're here')
+    print('ok we\'re here')
     cursor = conn.cursor(dictionary=True)
     
     # Query agents
