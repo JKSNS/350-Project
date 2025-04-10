@@ -18,6 +18,19 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 
+# ------------------------ BEGIN CLASSES ------------------------ #
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f"User('{self.username}', admin={self.is_admin})"
+
+# ------------------------ END CLASSES ------------------------ #
+
 # ------------------------ BEGIN DATABASE FUNCTIONS ------------------------ #
 # Function to retrieve DB connection
 def get_db_connection():
@@ -141,10 +154,45 @@ def update_task_status(task_id, status):
 
 # ------------------------ END DATABASE FUNCTIONS ------------------------ #
 
+
+
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    return redirect(url_for('login'))
+
+
+@app.route('/register', methods=['GET','POST'])
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get("password")
+
+        is_admin = 'is_admin' in request.form
+        # Check if username already exists
+        user = User.query.filter_by(username=username).first()
+        if user:
+            return jsonify({'message': 'Username already exists!'}), 409
+
+        # Hash the password
+        hashed_password = generate_password_hash(password, method='sha256')
+
+        # Create new user
+        new_user = User(username=data['username'], password=hashed_password, is_admin=is_admin)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({'message': 'User created successfully!'}), 201
 
 @app.route('/displayagents', methods=['GET'])
 def display_agents():
