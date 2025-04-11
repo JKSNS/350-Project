@@ -195,7 +195,15 @@ def register():
         email = request.form.get("email")
         tier_id = request.form.get("tier_id")
         referer = request.form.get("referer")
+         if referer:
+            referer_user = get_user_by_username(referer)
+            if not referer_user:
+                return jsonify({'message': 'Referrer username does not exist!'}), 400
+        else:
+            referer = None  
+            
         is_admin = 'is_admin' in request.form
+        
         # Check if username already exists
         user = get_user_by_username(username)
         if user:
