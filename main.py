@@ -183,6 +183,7 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
+    print("Session contents:", session)
     if 'username' not in session:
         return redirect(url_for('login'))
     return render_template('index.html', username=session['username'])
