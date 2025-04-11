@@ -38,7 +38,7 @@ def get_db_connection():
     )
     return conn
 
-def setup_database():
+def check_database():
     # Just check if we can connect to the database
     try:
         conn = get_db_connection()
@@ -272,5 +272,5 @@ def declare_status():
 
 # ------------------------ MAIN ------------------------ #
 if __name__ == '__main__':
-    setup_database()
+    check_database()
     app.run(host='0.0.0.0', port=int(os.getenv("PORT", 443)), ssl_context='adhoc')
