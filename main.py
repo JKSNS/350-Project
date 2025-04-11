@@ -59,7 +59,7 @@ def get_user_by_username(username):
     conn.close()
     return user
 
-def verify_user(username, hashed_password):
+def verify_user(username):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     query = "SELECT Username FROM USERS WHERE Username = %s"
