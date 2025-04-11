@@ -59,12 +59,12 @@ def get_user_by_username(username):
     conn.close()
     return user
 
-def create_user(username, password_hash, email=None, tier_id=1, refers_username=None, is_admin=False):
+def create_user(username, password_hash, email=None, tier_id=1, referer=None, is_admin=False):
     conn = get_db_connection()
     cursor = conn.cursor()
 
     query = "INSERT INTO USERS (Username, Password, Email, TierID, Refers_Username, is_admin) VALUES (%s, %s, %s, %s, %s, %s)"
-    cursor.execute(query, (username, password_hash, email, tier_id, refers_username, is_admin))
+    cursor.execute(query, (username, password_hash, email, tier_id, referer, is_admin))
     
     conn.commit()
     conn.close()
@@ -192,6 +192,9 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get("password")
+        email = request.form.get("email")
+        tier_id = request.form.get("tier_id")
+        referer = request.form.get("referer")
         is_admin = 'is_admin' in request.form
         # Check if username already exists
         user = get_user_by_username(username)
