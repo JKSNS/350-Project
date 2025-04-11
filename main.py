@@ -13,12 +13,14 @@ from dotenv import load_dotenv
 
 # Load environment variables 
 load_dotenv()
+db = os.getenv("DB_DATABASE")
 
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 
 # ------------------------ BEGIN CLASSES ------------------------ #
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
