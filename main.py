@@ -8,7 +8,7 @@ import uuid
 import json
 from datetime import datetime
 import mysql.connector
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, redirect, url_for, session
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -183,7 +183,9 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
-    return render_template('login.html')
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('index.html', username=session['username'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -195,7 +197,8 @@ def login():
 
     user = verify_user(username)
     if user and check_password_hash(user['Password'], password):
-        return redirect(url_for('index'))
+        session['username'] = user['Username']
+        return redirect(url_for('/'))
     else:
         return render_template('login.html', error="Invalid username or password.")
     
@@ -304,4 +307,5 @@ def declare_status():
 # ------------------------ MAIN ------------------------ #
 if __name__ == '__main__':
     check_database()
+    app.secret_key = os.getenv("SECRET")
     app.run(host='0.0.0.0', port=int(os.getenv("PORT", 443)), ssl_context='adhoc')
