@@ -176,9 +176,13 @@ def update_task_status(task_id, status):
 def index():
     return render_template('index.html')
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST')
 def login():
-    return render_template('login.html')
+    if request.method == 'GET':
+        return render_template('login.html')
+    if request.method == 'POST':
+        return jsonify({'message': 'just chill tf out and hang tight there big guy'}), 201
+    
 
 @app.route('/logout')
 def logout():
