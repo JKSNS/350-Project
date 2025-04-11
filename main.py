@@ -198,7 +198,7 @@ def login():
     user = verify_user(username)
     if user and check_password_hash(user['Password'], password):
         session['username'] = user['Username']
-        return redirect(url_for('/'))
+        return redirect(url_for('index'))
     else:
         return render_template('login.html', error="Invalid username or password.")
     
