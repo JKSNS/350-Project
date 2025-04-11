@@ -36,6 +36,13 @@
                 </tr>
             </table>
         </div>
+        <div>
+            <h3>Your JWT Token:</h3>
+                <div class="token-box">
+                    {{ token }}
+                </div>
+            <p>Use this token in the header of your API requests as "x-access-token" to access protected routes.</p>
+        </div>
         <div class="machine-table">
             <h2 id="inactive-machines">Inactive Machines</h2>
             <table>
