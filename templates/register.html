@@ -15,27 +15,27 @@
     {% endif %}
 
     <form method="POST" action="{{ url_for('register') }}">
-        <div class="login-wrapper">
+        <div class="form-group">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
         </div>
-        <div class="login-wrapper">
+        <div class="form-group">
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
         </div>
-        <div class="login-wrapper">
+        <div class="form-group">
             <label for="email">Email:</label>
             <input type="text" id="email" name="email" required>
         </div>
-        <div class="login-wrapper">
+        <div class="form-group">
             <label for="tier_id">Tier Level:</label>
             <input type="text" id="tier_id" name="tier_id" required>
         </div>
-        <div class="login-wrapper">
+        <div class="form-group">
             <label for="referer">Username of Referer:</label>
             <input type="text" id="referer" name="referer">
         </div>
-        <div class="login-wrapper">
+        <div class="form-group">
             <label>
                 <input type="checkbox" name="is_admin"> Admin Account
             </label>
