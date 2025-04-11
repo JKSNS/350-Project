@@ -191,7 +191,8 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        return render_template('login.html')
+        success = request.args.get('success')
+        return render_template('login.html', success=success)
 
     username = request.form.get('username')
     password = request.form.get('password')
@@ -239,8 +240,8 @@ def register():
 
         # Create new user
         create_user(username, hashed_password, email, tier_id, referer, is_admin)
-        return jsonify({'message': 'User created successfully!'}), 201
-
+        return redirect(url_for('login', success='User created successfully'))
+        
 @app.route('/displayagents', methods=['GET'])
 def display_agents():
     agents = get_all_agents()
