@@ -62,7 +62,7 @@ def get_user_by_username(username):
 def verify_user(username):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT Username FROM USERS WHERE Username = %s"
+    query = "SELECT Username, Password FROM USERS WHERE Username = %s"
     cursor.execute(query, (username,))
     user = cursor.fetchone()
     conn.close()
