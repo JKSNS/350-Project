@@ -25,6 +25,7 @@ CREATE TABLE USER
   Email INT,
   Username INT NOT NULL,
   TierID INT NOT NULL,
+  is_admin BOOLEAN DEFAULT FALSE,
   Refers_Username INT,
   PRIMARY KEY (Username),
   FOREIGN KEY (TierID) REFERENCES TIER(TierID),

@@ -11,9 +11,18 @@
         <div class="head-bar">
             <h1 id="head-bar-header">Available Machines</h1>
             <div class="head-bar-buttons">
-                <button type="submit" id="admin-button">Admin</button>
-                <button type="submit" id="sign-out-button">Sign Out</button>
+                <button type="submit" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;">Admin</button>
+                <form action="{{ url_for('logout') }}" method="POST">
+                    <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
+                </form>
             </div>
+        </div>
+        <div>
+            <h3>Your JWT Token:</h3>
+                <div class="token-box">
+                    {{ token }}
+                </div>
+            <p>Use this token in the header of your API requests as "x-access-token" to access protected routes.</p>
         </div>
         <div class="machine-table">
             <h2 id="active-machines">Active Machines</h2>

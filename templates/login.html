@@ -7,21 +7,35 @@
     <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <div class="login-wrapper">
-            <h1>C2 Login</h1>
-        </div>
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="success-message" style="color: green; margin-bottom: 15px;">
+        {{ success }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="{{ url_for('login') }}">
         <div class="login-wrapper">
             <h2 class="login-head">Username</h2>
-            <input type="text" placeholder="Enter your username" class="login-box" id="uname" required>
+            <input type="text" placeholder="Enter your username" class="login-box" id="uname" name="username" required>
         </div>
+    
         <div class="login-wrapper">
             <h2 class="login-head">Password</h2>
-            <input type="text" placeholder="Enter your password" class="login-box" id="pswd" required>
+            <input type="password" placeholder="Enter your password" class="login-box" id="pswd" name="password" required>
         </div>
+    
         <div class="login-wrapper">
             <button type="submit" id="login-button">Sign In</button>
         </div>
-    </div>
+        <div class="login-wrapper" style="text-align: center; margin-top: 10px;">
+            <a href="{{ url_for('register') }}" style="color: rgb(17, 83, 228); text-decoration: underline;">
+                Register New User
+            </a>
+        </div>
+    </form>
 </body>
 </html>

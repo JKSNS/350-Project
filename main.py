@@ -8,11 +8,13 @@ import uuid
 import json
 from datetime import datetime
 import mysql.connector
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, render_template, request, jsonify, Response, redirect, url_for, session
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables 
 load_dotenv()
+db = os.getenv("DB_DATABASE")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -20,14 +22,8 @@ app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 
 # ------------------------ BEGIN CLASSES ------------------------ #
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
 
-    def __repr__(self):
-        return f"User('{self.username}', admin={self.is_admin})"
+
 
 # ------------------------ END CLASSES ------------------------ #
 
@@ -42,7 +38,7 @@ def get_db_connection():
     )
     return conn
 
-def setup_database():
+def check_database():
     # Just check if we can connect to the database
     try:
         conn = get_db_connection()
@@ -54,6 +50,34 @@ def setup_database():
         print(f"Error connecting to database: {e}")
         exit(1)
 
+def get_user_by_username(username):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    query = "SELECT * FROM USERS WHERE Username = %s"
+    cursor.execute(query, (username,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+def verify_user(username):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    query = "SELECT Username, Password FROM USERS WHERE Username = %s"
+    cursor.execute(query, (username,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+def create_user(username, password_hash, email=None, tier_id=1, referer=None, is_admin=False):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    query = "INSERT INTO USERS (Username, Password, Email, TierID, Refers_Username, is_admin) VALUES (%s, %s, %s, %s, %s, %s)"
+    cursor.execute(query, (username, password_hash, email, tier_id, referer, is_admin))
+    
+    conn.commit()
+    conn.close()
+    return username  
 
 # Function to get all agents with their tasks
 def get_all_agents():
@@ -159,14 +183,31 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
-    return render_template('index.html')
+    print("Session contents:", session)
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    return render_template('index.html', username=session['username'])
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('login.html')
+    if request.method == 'GET':
+        success = request.args.get('success')
+        return render_template('login.html', success=success)
 
-@app.route('/logout')
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    user = verify_user(username)
+    if user and check_password_hash(user['Password'], password):
+        session['username'] = user['Username']
+        return redirect(url_for('index'))
+    else:
+        return render_template('login.html', error="Invalid username or password.")
+    
+
+@app.route('/logout', methods=['POST'])
 def logout():
+    session.clear()
     return redirect(url_for('login'))
 
 
@@ -177,23 +218,30 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get("password")
-
+        email = request.form.get("email")
+        tier_id = request.form.get("tier_id")
+        referer = request.form.get("referer")
+        if referer:
+            referer_user = get_user_by_username(referer)
+            if not referer_user:
+                return jsonify({'message': 'Referrer username does not exist!'}), 400
+        else:
+            referer = None  
+            
         is_admin = 'is_admin' in request.form
+        
         # Check if username already exists
-        user = User.query.filter_by(username=username).first()
+        user = get_user_by_username(username)
         if user:
             return jsonify({'message': 'Username already exists!'}), 409
 
         # Hash the password
-        hashed_password = generate_password_hash(password, method='sha256')
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         # Create new user
-        new_user = User(username=data['username'], password=hashed_password, is_admin=is_admin)
-        db.session.add(new_user)
-        db.session.commit()
-
-        return jsonify({'message': 'User created successfully!'}), 201
-
+        create_user(username, hashed_password, email, tier_id, referer, is_admin)
+        return redirect(url_for('login', success='User created successfully'))
+        
 @app.route('/displayagents', methods=['GET'])
 def display_agents():
     agents = get_all_agents()
@@ -261,5 +309,6 @@ def declare_status():
 
 # ------------------------ MAIN ------------------------ #
 if __name__ == '__main__':
-    setup_database()
+    check_database()
+    app.secret_key = os.getenv("SECRET")
     app.run(host='0.0.0.0', port=int(os.getenv("PORT", 443)), ssl_context='adhoc')
