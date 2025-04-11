@@ -205,7 +205,7 @@ def register():
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
         # Create new user
-        create_user(username, hashed_password, is_admin)
+        create_user(username, hashed_password, email, tier_id, referer, is_admin)
         return jsonify({'message': 'User created successfully!'}), 201
 
 @app.route('/displayagents', methods=['GET'])
