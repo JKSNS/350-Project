@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+    
     <form method="POST" action="{{ url_for('login') }}">
         <div class="login-wrapper">
             <h2 class="login-head">Username</h2>
