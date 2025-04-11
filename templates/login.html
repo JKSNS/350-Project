@@ -11,6 +11,11 @@
     {% if error %}
     <div class="error-message">{{ error }}</div>
     {% endif %}
+    {% if success %}
+    <div class="success-message" style="color: green; margin-bottom: 15px;">
+        {{ success }}
+    </div>
+    {% endif %}
     
     <form method="POST" action="{{ url_for('login') }}">
         <div class="login-wrapper">
