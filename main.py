@@ -59,6 +59,15 @@ def get_user_by_username(username):
     conn.close()
     return user
 
+def verify_user(username, hashed_password):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    query = "SELECT Username FROM USERS WHERE Username = %s"
+    cursor.execute(query, (username,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
 def create_user(username, password_hash, email=None, tier_id=1, referer=None, is_admin=False):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -174,14 +183,21 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('login.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
         return render_template('login.html')
-    if request.method == 'POST':
-        return jsonify({'message': 'just chill tf out and hang tight there big guy'}), 201
+
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    user = verify_user(username)
+    if user and check_password_hash(user['Password'], password):
+        return redirect(url_for('index'))
+    else:
+        return render_template('login.html', error="Invalid username or password.")
     
 
 @app.route('/logout')
