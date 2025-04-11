@@ -10,6 +10,7 @@ from datetime import datetime
 import mysql.connector
 from flask import Flask, render_template, request, jsonify, Response
 from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables 
 load_dotenv()
@@ -22,14 +23,7 @@ app.secret_key = os.getenv("SECRET_KEY", "default_secret_key")
 # ------------------------ BEGIN CLASSES ------------------------ #
 
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False)
 
-    def __repr__(self):
-        return f"User('{self.username}', admin={self.is_admin})"
 
 # ------------------------ END CLASSES ------------------------ #
 
@@ -55,6 +49,25 @@ def setup_database():
     except mysql.connector.Error as e:
         print(f"Error connecting to database: {e}")
         exit(1)
+
+def get_user_by_username(username):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    query = "SELECT * FROM users WHERE username = %s"
+    cursor.execute(query, (username,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+def create_user(username, password_hash, is_admin=False):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = "INSERT INTO users (username, password, is_admin) VALUES (%s, %s, %s)"
+    cursor.execute(query, (username, password_hash, is_admin))
+    conn.commit()
+    user_id = cursor.lastrowid
+    conn.close()
+    return user_id
 
 
 # Function to get all agents with their tasks
@@ -179,10 +192,9 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get("password")
-
         is_admin = 'is_admin' in request.form
         # Check if username already exists
-        user = User.query.filter_by(username=username).first()
+        user = get_user_by_username(username)
         if user:
             return jsonify({'message': 'Username already exists!'}), 409
 
@@ -190,10 +202,7 @@ def register():
         hashed_password = generate_password_hash(password, method='sha256')
 
         # Create new user
-        new_user = User(username=data['username'], password=hashed_password, is_admin=is_admin)
-        db.session.add(new_user)
-        db.session.commit()
-
+        create_user(username, hashed_password, is_admin)
         return jsonify({'message': 'User created successfully!'}), 201
 
 @app.route('/displayagents', methods=['GET'])
