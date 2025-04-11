@@ -7,21 +7,26 @@
     <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <div class="login-wrapper">
-            <h1>C2 Login</h1>
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="page-container">
+            <div class="login-wrapper">
+                <h1>C2 Login</h1>
+            </div>
+            <div class="login-wrapper">
+                <h2 class="login-head">Username</h2>
+                <input type="text" placeholder="Enter your username" class="login-box" id="uname" required>
+            </div>
+            <div class="login-wrapper">
+                <h2 class="login-head">Password</h2>
+                <input type="text" placeholder="Enter your password" class="login-box" id="pswd" required>
+            </div>
+            <div class="login-wrapper">
+                <button type="submit" id="login-button">Sign In</button>
+            </div>
         </div>
-        <div class="login-wrapper">
-            <h2 class="login-head">Username</h2>
-            <input type="text" placeholder="Enter your username" class="login-box" id="uname" required>
-        </div>
-        <div class="login-wrapper">
-            <h2 class="login-head">Password</h2>
-            <input type="text" placeholder="Enter your password" class="login-box" id="pswd" required>
-        </div>
-        <div class="login-wrapper">
-            <button type="submit" id="login-button">Sign In</button>
-        </div>
+    </form>
+    <div class="register-link" style="margin-top: 20px; text-align: center;">
+    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
     </div>
 </body>
 </html>
