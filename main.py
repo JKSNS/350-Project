@@ -53,7 +53,7 @@ def check_database():
 def get_user_by_username(username):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM users WHERE username = %s"
+    query = "SELECT * FROM USERS WHERE Username = %s"
     cursor.execute(query, (username,))
     user = cursor.fetchone()
     conn.close()
