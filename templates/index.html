@@ -27,45 +27,89 @@
         <div class="machine-table">
             <h2 id="active-machines">Active Machines</h2>
             <table>
-                <tr>
-                    <th>Name</th>
-                    <th>IP</th>
-                    <th>OS</th>
-                    <th>Version</th>
-                    <th>Check In</th>
-                    <th>Tasks</th>
-                </tr>
-                <tr>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>IP</th>
+                        <th>OS</th>
+                        <th>Version</th>
+                        <th>Check In</th>
+                        <th>Tasks</th>
+                    </tr>
+                </thead>
+                <tbody id="activeMachinesBody">
+                    <!-- Active agents will go here -->
+                </tbody>
             </table>
         </div>
         <div class="machine-table">
             <h2 id="inactive-machines">Inactive Machines</h2>
             <table>
-                <tr>
-                    <th>Name</th>
-                    <th>IP</th>
-                    <th>OS</th>
-                    <th>Version</th>
-                    <th>Check In</th>
-                    <th>Tasks</th>
-                </tr>
-                <tr>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                    <td>FILLER</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>IP</th>
+                        <th>OS</th>
+                        <th>Version</th>
+                        <th>Check In</th>
+                        <th>Tasks</th>
+                    </tr>
+                </thead>
+                <tbody id="inactiveMachinesBody">
+                    <!-- Inactive agents will go here -->
+                </tbody>
             </table>
         </div>
     </div>
+    <script>
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString();
+        }
+
+        async function loadAgents() {
+            try {
+                const response = await fetch('/displayagents');
+                const agents = await response.json();
+
+                const activeBody = document.getElementById('activeMachinesBody');
+                const inactiveBody = document.getElementById('inactiveMachinesBody');
+                activeBody.innerHTML = '';
+                inactiveBody.innerHTML = '';
+
+                agents.forEach(agent => {
+                    const isActive = (Date.now() / 1000) - agent.LastCheckin < 300;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${agent.ID}</td>
+                        <td>${agent.IPAddress}</td>
+                        <td>${agent.Os}</td>
+                        <td>${agent.OsVersion}</td>
+                        <td>${formatTimestamp(agent.LastCheckin)}</td>
+                        <td>
+                            ${agent.Tasks.length > 0
+                                ? agent.Tasks.map(task => `<div>${task.Description} (${task.Status})</div>`).join('')
+                                : 'No tasks'}
+                        </td>
+                    `;
+
+                    if (isActive) {
+                        activeBody.appendChild(row);
+                    } else {
+                        inactiveBody.appendChild(row);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading agents:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAgents();
+            setInterval(loadAgents, 30000); // Auto refresh every 30s
+        });
+    </script>
 </body>
 </html>
