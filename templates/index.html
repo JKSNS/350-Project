@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Main</title>
+  <title>Main Dashboard</title>
   <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
   <div class="page-container">
     <div class="head-bar">
-      <h1 id="head-bar-header">Available Machines</h1>
+      <!-- Display the user's TierID (or any other info) in the header -->
+      <h1 id="head-bar-header">Available Machines (Tier {{ tier_id }})</h1>
       <div class="head-bar-buttons">
         <!-- Admin button to redirect to admin dashboard -->
         <button type="button" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button (using POST via a form) -->
+        <!-- Sign Out button; using POST via a form -->
         <form action="{{ url_for('logout') }}" method="POST">
           <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
         </form>
       </div>
     </div>
+    
+    <!-- Optionally, display JWT Token if provided from login -->
     <div>
       <h3>Your JWT Token:</h3>
       <div class="token-box">
@@ -26,6 +29,7 @@
       </div>
       <p>Use this token in the header of your API requests as "x-access-token" to access protected routes.</p>
     </div>
+    
     <div class="machine-table">
       <h2 id="active-machines">Active Machines</h2>
       <table>
@@ -36,11 +40,13 @@
             <th>OS</th>
             <th>Version</th>
             <th>Check In</th>
+            <th>Cores</th>
+            <th>RAM (GB)</th>
             <th>Tasks</th>
           </tr>
         </thead>
         <tbody id="activeMachinesBody">
-          <!-- Active agents will be injected here -->
+          <!-- Active machines will be injected here by JS -->
         </tbody>
       </table>
     </div>
@@ -54,15 +60,18 @@
             <th>OS</th>
             <th>Version</th>
             <th>Check In</th>
+            <th>Cores</th>
+            <th>RAM (GB)</th>
             <th>Tasks</th>
           </tr>
         </thead>
         <tbody id="inactiveMachinesBody">
-          <!-- Inactive agents will be injected here -->
+          <!-- Inactive machines will be injected here by JS -->
         </tbody>
       </table>
     </div>
   </div>
+  
   <script>
     function formatTimestamp(timestamp) {
       const date = new Date(timestamp * 1000);
@@ -88,12 +97,15 @@
             <td>${agent.Os}</td>
             <td>${agent.OsVersion}</td>
             <td>${formatTimestamp(agent.LastCheckin)}</td>
+            <td>${agent.Cores}</td>
+            <td>${agent.Ram}</td>
             <td>
               ${agent.Tasks.length > 0
                 ? agent.Tasks.map(task => `<div>${task.Description} (${task.Status || 'N/A'})</div>`).join('')
                 : 'No tasks'}
             </td>
           `;
+    
           if (isActive) {
             activeBody.appendChild(row);
           } else {
