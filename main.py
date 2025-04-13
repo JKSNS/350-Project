@@ -315,6 +315,91 @@ def admin_dashboard():
     return render_template('admin.html')
 
 
+@app.route('/admin/add_machine', methods=['POST'])
+def add_machine():
+    # 1) Ensure user is admin
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    user = get_user_by_username(session['username'])
+    if not user or not user['is_admin']:
+        return "Forbidden: You must be an admin", 403
+
+    # 2) Extract form data
+    machine_name = request.form.get('machine_name')
+    ip_address = request.form.get('ip_address')
+    operating_system = request.form.get('operating_system')
+    version = request.form.get('version')
+    # The datetime-local field is a string (e.g. '2025-05-01T10:00'), parse or store as needed
+    last_checkin_str = request.form.get('last_checkin')  # 'YYYY-MM-DDTHH:MM'
+    # Convert to a MySQL-compatible datetime if needed
+    # e.g., last_checkin = datetime.strptime(last_checkin_str, '%Y-%m-%dT%H:%M')
+
+    # 3) Insert into MACHINE table
+    # (Adjust columns based on your actual schema: MachineID is usually auto-increment)
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    query = """
+        INSERT INTO MACHINE (IPAddress, LastCheckIn, OperatingSystem, Version, Cores, Ram, TierID, Username)
+        VALUES (%s, %s, %s, %s, 4, 16, 1, %s)
+    """
+    # We'll insert placeholder values for Cores, Ram, TierID, Username, etc.
+    # If your DB schema requires them, ask the user or default them
+    cursor.execute(query, (ip_address, last_checkin_str, operating_system, version, machine_name))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/update_account', methods=['POST'])
+def update_account():
+    # 1) Ensure user is logged in + admin (OR decide if only admin can do this, or the user themself)
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    admin_user = get_user_by_username(session['username'])
+    if not admin_user or not admin_user['is_admin']:
+        return "Forbidden: You must be an admin", 403
+
+    # 2) Get form data
+    username = request.form.get('username')       # The account's username to update
+    new_email = request.form.get('email')
+    new_password = request.form.get('new_password')
+
+    # 3) Build SQL updates
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # If user only updated email
+    if new_email and not new_password:
+        query = "UPDATE DB_USER SET Email=%s WHERE Username=%s"
+        cursor.execute(query, (new_email, username))
+
+    # If user only updated password
+    elif not new_email and new_password:
+        hashed = generate_password_hash(new_password, method='pbkdf2:sha256')
+        query = "UPDATE DB_USER SET Password=%s WHERE Username=%s"
+        cursor.execute(query, (hashed, username))
+
+    # If user updated both email and password
+    elif new_email and new_password:
+        hashed = generate_password_hash(new_password, method='pbkdf2:sha256')
+        query = "UPDATE DB_USER SET Email=%s, Password=%s WHERE Username=%s"
+        cursor.execute(query, (new_email, hashed, username))
+
+    # If neither field was updated
+    else:
+        # Possibly do nothing or flash a message
+        pass
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('admin_dashboard'))
+
+
 
 # ------------------------ END ROUTES ------------------------ #
 
