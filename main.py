@@ -380,7 +380,11 @@ def add_machine():
 
 @app.route('/admin/update_account', methods=['POST'])
 def update_account():
-    # 1) Ensure user is logged in + admin (OR decide if only admin can do this, or the user themself)
+    """
+    Updates only the Email and/or Password of a given user, 
+    leaving fields like Refers_Username, TierID, and is_admin untouched.
+    """
+    # 1) Ensure the request is from a logged-in admin user
     if 'username' not in session:
         return redirect(url_for('login'))
 
@@ -388,41 +392,46 @@ def update_account():
     if not admin_user or not admin_user['is_admin']:
         return "Forbidden: You must be an admin", 403
 
-    # 2) Get form data
-    username = request.form.get('username')       # The account's username to update
+    # 2) Retrieve the username to be updated from the form
+    username = request.form.get('username')
     new_email = request.form.get('email')
     new_password = request.form.get('new_password')
 
-    # 3) Build SQL updates
+    # 3) Fetch the existing user from DB
+    existing_user = get_user_by_username(username)
+    if not existing_user:
+        return "No user found with that username.", 400
+
+    # 4) Update only what's provided:
+    #     - If new_email was given, override the old email
+    #     - If new_password was given, hash it & override the old password
+    if new_email:
+        existing_user['Email'] = new_email
+
+    if new_password:
+        hashed_pw = generate_password_hash(new_password, method='pbkdf2:sha256')
+        existing_user['Password'] = hashed_pw
+
+    # 5) Save changes to DB (only Email & Password)
     conn = get_db_connection()
     cursor = conn.cursor()
-
-    # If user only updated email
-    if new_email and not new_password:
-        query = "UPDATE DB_USER SET Email=%s WHERE Username=%s"
-        cursor.execute(query, (new_email, username))
-
-    # If user only updated password
-    elif not new_email and new_password:
-        hashed = generate_password_hash(new_password, method='pbkdf2:sha256')
-        query = "UPDATE DB_USER SET Password=%s WHERE Username=%s"
-        cursor.execute(query, (hashed, username))
-
-    # If user updated both email and password
-    elif new_email and new_password:
-        hashed = generate_password_hash(new_password, method='pbkdf2:sha256')
-        query = "UPDATE DB_USER SET Email=%s, Password=%s WHERE Username=%s"
-        cursor.execute(query, (new_email, hashed, username))
-
-    # If neither field was updated
-    else:
-        # Possibly do nothing or flash a message
-        pass
-
+    query = """
+        UPDATE DB_USER
+           SET Email = %s,
+               Password = %s
+         WHERE Username = %s
+    """
+    cursor.execute(query, (
+        existing_user['Email'],
+        existing_user['Password'],
+        username
+    ))
     conn.commit()
     conn.close()
 
+    # 6) Redirect back to admin page (or wherever you prefer)
     return redirect(url_for('admin_dashboard'))
+
 
 
 
