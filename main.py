@@ -317,40 +317,65 @@ def admin_dashboard():
 
 @app.route('/admin/add_machine', methods=['POST'])
 def add_machine():
-    # 1) Ensure user is admin
+    # Ensure user is logged in + admin
     if 'username' not in session:
         return redirect(url_for('login'))
-
-    user = get_user_by_username(session['username'])
-    if not user or not user['is_admin']:
+    admin_user = get_user_by_username(session['username'])
+    if not admin_user or not admin_user['is_admin']:
         return "Forbidden: You must be an admin", 403
 
-    # 2) Extract form data
-    machine_name = request.form.get('machine_name')
-    ip_address = request.form.get('ip_address')
+    # Gather form data
+    ip_address       = request.form.get('ip_address')
+    last_checkin_str = request.form.get('last_checkin')  # "2025-02-28T10:15"
     operating_system = request.form.get('operating_system')
-    version = request.form.get('version')
-    # The datetime-local field is a string (e.g. '2025-05-01T10:00'), parse or store as needed
-    last_checkin_str = request.form.get('last_checkin')  # 'YYYY-MM-DDTHH:MM'
-    # Convert to a MySQL-compatible datetime if needed
-    # e.g., last_checkin = datetime.strptime(last_checkin_str, '%Y-%m-%dT%H:%M')
+    version          = request.form.get('version')
+    cores_str        = request.form.get('cores')
+    ram_str          = request.form.get('ram')
+    tier_id_str      = request.form.get('tier_id')
+    username         = request.form.get('username')
 
-    # 3) Insert into MACHINE table
-    # (Adjust columns based on your actual schema: MachineID is usually auto-increment)
+    # Convert numeric fields
+    cores  = int(cores_str)
+    ram    = int(ram_str)
+    tier_id = int(tier_id_str)
+
+    # If your DB column is a DATE or DATETIME, you can parse the string
+    # or store it directly if the column is VARCHAR. E.g.:
+    # last_checkin = datetime.strptime(last_checkin_str, '%Y-%m-%dT%H:%M')
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    query = """
-        INSERT INTO MACHINE (IPAddress, LastCheckIn, OperatingSystem, Version, Cores, Ram, TierID, Username)
-        VALUES (%s, %s, %s, %s, 4, 16, 1, %s)
-    """
-    # We'll insert placeholder values for Cores, Ram, TierID, Username, etc.
-    # If your DB schema requires them, ask the user or default them
-    cursor.execute(query, (ip_address, last_checkin_str, operating_system, version, machine_name))
 
+    # Insert record
+    # Adapt if MachineID is auto-increment
+    sql = """
+    INSERT INTO MACHINE (
+      IPAddress,
+      LastCheckIn,
+      OperatingSystem,
+      Version,
+      Cores,
+      Ram,
+      TierID,
+      Username
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    cursor.execute(sql, (
+        ip_address,
+        last_checkin_str,
+        operating_system,
+        version,
+        cores,
+        ram,
+        tier_id,
+        username
+    ))
     conn.commit()
     conn.close()
 
     return redirect(url_for('admin_dashboard'))
+
 
 
 @app.route('/admin/update_account', methods=['POST'])
