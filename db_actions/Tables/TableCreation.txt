@@ -3,16 +3,6 @@ CREATE TABLE TIER(
     TierName INT NOT NULL,
     TierLevel INT NOT NULL,
     PRIMARY KEY(TierID)
-); CREATE TABLE SALES_TRANSACTION(
-    TimeOfTranscation INT NOT NULL,
-    CryptoUsed INT NOT NULL,
-    Amount INT NOT NULL,
-    TransactionID INT NOT NULL,
-    Username INT NOT NULL,
-    TierID INT NOT NULL,
-    PRIMARY KEY(TransactionID),
-    FOREIGN KEY(Username) REFERENCES DB_USER(Username),
-    FOREIGN KEY(TierID) REFERENCES TIER(TierID)
 ); CREATE TABLE DB_USER(
     PASSWORD INT NOT NULL,
     Email INT,
@@ -23,6 +13,16 @@ CREATE TABLE TIER(
     PRIMARY KEY(Username),
     FOREIGN KEY(TierID) REFERENCES TIER(TierID),
     FOREIGN KEY(Refers_Username) REFERENCES DB_USER(Username)
+); CREATE TABLE SALES_TRANSACTION(
+    TimeOfTranscation INT NOT NULL,
+    CryptoUsed INT NOT NULL,
+    Amount INT NOT NULL,
+    TransactionID INT NOT NULL,
+    Username INT NOT NULL,
+    TierID INT NOT NULL,
+    PRIMARY KEY(TransactionID),
+    FOREIGN KEY(Username) REFERENCES DB_USER(Username),
+    FOREIGN KEY(TierID) REFERENCES TIER(TierID)
 ); CREATE TABLE MACHINE(
     MachineID INT NOT NULL,
     IPAddress INT NOT NULL,
