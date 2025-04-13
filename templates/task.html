@@ -11,9 +11,9 @@
     <div class="head-bar">
       <h1 id="head-bar-header">Task Dashboard</h1>
       <div class="head-bar-buttons">
-        <!-- Admin button redirects to /admin -->
+        <!-- Admin button to redirect to the admin dashboard -->
         <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button using GET redirect (or change your logout route to accept GET) -->
+        <!-- Sign Out button using GET redirect (or adjust logout route accordingly) -->
         <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
       </div>
     </div>
@@ -38,7 +38,6 @@
       <div class="task-option">
         <h3 class="task-input-head">Scheduled At:</h3>
         <input type="datetime-local" class="task-input" id="tsk-time" required>
-        <!-- Set minimum datetime to current time -->
         <script>
           const now = new Date();
           const minDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
