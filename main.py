@@ -452,6 +452,13 @@ def tasks_page():
     )
 
 
+@app.route('/tasks')
+def tasks_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    # Optionally, you can retrieve user info if needed:
+    user = get_user_by_username(session['username'])
+    return render_template('tasks.html', username=user['Username'])
 
 
 
