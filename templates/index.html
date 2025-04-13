@@ -1,115 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Main</title>
+  <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
-    <div class="page-container">
-        <div class="head-bar">
-            <h1 id="head-bar-header">Available Machines</h1>
-            <div class="head-bar-buttons">
-                <button type="submit" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;">Admin</button>
-                <form action="{{ url_for('logout') }}" method="POST">
-                    <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
-                </form>
-            </div>
-        </div>
-        <div>
-            <h3>Your JWT Token:</h3>
-                <div class="token-box">
-                    {{ token }}
-                </div>
-            <p>Use this token in the header of your API requests as "x-access-token" to access protected routes.</p>
-        </div>
-        <div class="machine-table">
-            <h2 id="active-machines">Active Machines</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>IP</th>
-                        <th>OS</th>
-                        <th>Version</th>
-                        <th>Check In</th>
-                        <th>Tasks</th>
-                    </tr>
-                </thead>
-                <tbody id="activeMachinesBody">
-                    <!-- Active agents will go here -->
-                </tbody>
-            </table>
-        </div>
-        <div class="machine-table">
-            <h2 id="inactive-machines">Inactive Machines</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>IP</th>
-                        <th>OS</th>
-                        <th>Version</th>
-                        <th>Check In</th>
-                        <th>Tasks</th>
-                    </tr>
-                </thead>
-                <tbody id="inactiveMachinesBody">
-                    <!-- Inactive agents will go here -->
-                </tbody>
-            </table>
-        </div>
+  <div class="page-container">
+    <div class="head-bar">
+      <h1 id="head-bar-header">Available Machines</h1>
+      <div class="head-bar-buttons">
+        <!-- Changed to a button with an onclick redirect to /admin -->
+        <button type="button" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='/admin';">
+          Admin
+        </button>
+        <!-- Using a form to POST to the logout route -->
+        <form action="{{ url_for('logout') }}" method="POST">
+          <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
+        </form>
+      </div>
     </div>
-    <script>
-        function formatTimestamp(timestamp) {
-            const date = new Date(timestamp * 1000);
-            return date.toLocaleString();
-        }
+    <div>
+      <h3>Your JWT Token:</h3>
+      <div class="token-box">
+        {{ token }}
+      </div>
+      <p>Use this token in the header of your API requests as "x-access-token" to access protected routes.</p>
+    </div>
+    <div class="machine-table">
+      <h2 id="active-machines">Active Machines</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>IP</th>
+            <th>OS</th>
+            <th>Version</th>
+            <th>Check In</th>
+            <th>Tasks</th>
+          </tr>
+        </thead>
+        <tbody id="activeMachinesBody">
+          <!-- Active agents will be injected here -->
+        </tbody>
+      </table>
+    </div>
+    <div class="machine-table">
+      <h2 id="inactive-machines">Inactive Machines</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>IP</th>
+            <th>OS</th>
+            <th>Version</th>
+            <th>Check In</th>
+            <th>Tasks</th>
+          </tr>
+        </thead>
+        <tbody id="inactiveMachinesBody">
+          <!-- Inactive agents will be injected here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp * 1000);
+      return date.toLocaleString();
+    }
 
-        async function loadAgents() {
-            try {
-                const response = await fetch('/displayagents');
-                const agents = await response.json();
+    async function loadAgents() {
+      try {
+        const response = await fetch('/displayagents');
+        const agents = await response.json();
 
-                const activeBody = document.getElementById('activeMachinesBody');
-                const inactiveBody = document.getElementById('inactiveMachinesBody');
-                activeBody.innerHTML = '';
-                inactiveBody.innerHTML = '';
+        const activeBody = document.getElementById('activeMachinesBody');
+        const inactiveBody = document.getElementById('inactiveMachinesBody');
+        activeBody.innerHTML = '';
+        inactiveBody.innerHTML = '';
 
-                agents.forEach(agent => {
-                    const isActive = (Date.now() / 1000) - agent.LastCheckin < 300;
-
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${agent.ID}</td>
-                        <td>${agent.IPAddress}</td>
-                        <td>${agent.Os}</td>
-                        <td>${agent.OsVersion}</td>
-                        <td>${formatTimestamp(agent.LastCheckin)}</td>
-                        <td>
-                            ${agent.Tasks.length > 0
-                                ? agent.Tasks.map(task => `<div>${task.Description} (${task.Status})</div>`).join('')
-                                : 'No tasks'}
-                        </td>
-                    `;
-
-                    if (isActive) {
-                        activeBody.appendChild(row);
-                    } else {
-                        inactiveBody.appendChild(row);
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error loading agents:', error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadAgents();
-            setInterval(loadAgents, 30000); // Auto refresh every 30s
+        agents.forEach(agent => {
+          const isActive = (Date.now() / 1000) - agent.LastCheckin < 300;
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${agent.ID}</td>
+            <td>${agent.IPAddress}</td>
+            <td>${agent.Os}</td>
+            <td>${agent.OsVersion}</td>
+            <td>${formatTimestamp(agent.LastCheckin)}</td>
+            <td>
+              ${agent.Tasks.length > 0
+                ? agent.Tasks.map(task => `<div>${task.Description} (${task.Status || 'N/A'})</div>`).join('')
+                : 'No tasks'}
+            </td>
+          `;
+          if (isActive) {
+            activeBody.appendChild(row);
+          } else {
+            inactiveBody.appendChild(row);
+          }
         });
-    </script>
+
+      } catch (error) {
+        console.error('Error loading agents:', error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAgents();
+      setInterval(loadAgents, 30000); // Auto refresh every 30 seconds
+    });
+  </script>
 </body>
 </html>
