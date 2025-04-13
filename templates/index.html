@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Main Dashboard</title>
   <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
   <div class="page-container">
     <div class="head-bar">
-      <!-- Display the user's TierID (or any other info) in the header -->
+      <!-- Display user's TierID in the header -->
       <h1 id="head-bar-header">Available Machines (Tier {{ tier_id }})</h1>
       <div class="head-bar-buttons">
-        <!-- Admin button to redirect to admin dashboard -->
+        <!-- Admin button to go to the admin dashboard -->
         <button type="button" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button; using POST via a form -->
+        <!-- Sign Out button (using a POST form) -->
         <form action="{{ url_for('logout') }}" method="POST">
           <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
         </form>
       </div>
     </div>
     
-    <!-- Optionally, display JWT Token if provided from login -->
+    <!-- Display JWT Token generated at login -->
     <div>
       <h3>Your JWT Token:</h3>
       <div class="token-box">
@@ -46,10 +46,11 @@
           </tr>
         </thead>
         <tbody id="activeMachinesBody">
-          <!-- Active machines will be injected here by JS -->
+          <!-- Active machines will be inserted by JavaScript -->
         </tbody>
       </table>
     </div>
+    
     <div class="machine-table">
       <h2 id="inactive-machines">Inactive Machines</h2>
       <table>
@@ -66,28 +67,29 @@
           </tr>
         </thead>
         <tbody id="inactiveMachinesBody">
-          <!-- Inactive machines will be injected here by JS -->
+          <!-- Inactive machines will be inserted by JavaScript -->
         </tbody>
       </table>
     </div>
   </div>
   
   <script>
-    function formatTimestamp(timestamp) {
-      const date = new Date(timestamp * 1000);
+    function formatTimestamp(unixSeconds) {
+      if (!unixSeconds) return 'Invalid Date';
+      const date = new Date(unixSeconds * 1000);
       return date.toLocaleString();
     }
-    
+
     async function loadAgents() {
       try {
         const response = await fetch('/displayagents');
         const agents = await response.json();
-    
+
         const activeBody = document.getElementById('activeMachinesBody');
         const inactiveBody = document.getElementById('inactiveMachinesBody');
         activeBody.innerHTML = '';
         inactiveBody.innerHTML = '';
-    
+
         agents.forEach(agent => {
           const isActive = (Date.now() / 1000) - agent.LastCheckin < 300;
           const row = document.createElement('tr');
@@ -101,23 +103,21 @@
             <td>${agent.Ram}</td>
             <td>
               ${agent.Tasks.length > 0
-                ? agent.Tasks.map(task => `<div>${task.Description} (${task.Status || 'N/A'})</div>`).join('')
+                ? agent.Tasks.map(task => `<div>${task.Description} (${task.AssignedBy})</div>`).join('')
                 : 'No tasks'}
             </td>
           `;
-    
           if (isActive) {
             activeBody.appendChild(row);
           } else {
             inactiveBody.appendChild(row);
           }
         });
-    
       } catch (error) {
         console.error('Error loading agents:', error);
       }
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
       loadAgents();
       setInterval(loadAgents, 30000); // Auto refresh every 30 seconds
