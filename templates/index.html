@@ -11,11 +11,9 @@
     <div class="head-bar">
       <h1 id="head-bar-header">Available Machines</h1>
       <div class="head-bar-buttons">
-        <!-- Changed to a button with an onclick redirect to /admin -->
-        <button type="button" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='/admin';">
-          Admin
-        </button>
-        <!-- Using a form to POST to the logout route -->
+        <!-- Admin button to redirect to admin dashboard -->
+        <button type="button" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='/admin';">Admin</button>
+        <!-- Sign Out button (using POST via a form) -->
         <form action="{{ url_for('logout') }}" method="POST">
           <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
         </form>
@@ -70,17 +68,17 @@
       const date = new Date(timestamp * 1000);
       return date.toLocaleString();
     }
-
+    
     async function loadAgents() {
       try {
         const response = await fetch('/displayagents');
         const agents = await response.json();
-
+    
         const activeBody = document.getElementById('activeMachinesBody');
         const inactiveBody = document.getElementById('inactiveMachinesBody');
         activeBody.innerHTML = '';
         inactiveBody.innerHTML = '';
-
+    
         agents.forEach(agent => {
           const isActive = (Date.now() / 1000) - agent.LastCheckin < 300;
           const row = document.createElement('tr');
@@ -102,12 +100,12 @@
             inactiveBody.appendChild(row);
           }
         });
-
+    
       } catch (error) {
         console.error('Error loading agents:', error);
       }
     }
-
+    
     document.addEventListener('DOMContentLoaded', () => {
       loadAgents();
       setInterval(loadAgents, 30000); // Auto refresh every 30 seconds
