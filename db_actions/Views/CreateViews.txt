@@ -1,24 +1,44 @@
-CREATE OR REPLACE VIEW user_dashboard AS
-SELECT TIER.TierName, MACHINE.MachineID, MACHINE.OperatingSystem, MACHINE.IPAddress, MACHINE.LastCheckIn, TASKS.TaskID, TASKS.TaskType
-FROM USERS
+CREATE OR REPLACE VIEW user_dashboard AS SELECT
+    TIER.TierName,
+    MACHINE.MachineID,
+    MACHINE.OperatingSystem,
+    MACHINE.IPAddress,
+    MACHINE.LastCheckIn,
+    TASKS.TaskID,
+    TASKS.TaskType
+FROM
+    USERS
 INNER JOIN TIER ON USERS.TierID = TIER.TierID
 INNER JOIN MACHINE ON USERS.Username = MACHINE.Username
 INNER JOIN TASKS ON USERS.Username = TASKS.Username;
-
-CREATE OR REPLACE VIEW machine_details AS
-SELECT MACHINE.MachineID, MACHINE.IPAddress, MACHINE.LastCheckIn, USERS.Username, USERS.Email, TASKS.TaskID, TASKS.TaskType
-FROM MACHINE
+CREATE OR REPLACE VIEW machine_details AS SELECT
+    MACHINE.MachineID,
+    MACHINE.IPAddress,
+    MACHINE.LastCheckIn,
+    USERS.Username,
+    USERS.Email,
+    TASKS.TaskID,
+    TASKS.TaskType
+FROM
+    MACHINE
 INNER JOIN USERS ON USERS.Username = MACHINE.Username
 INNER JOIN TASKS ON TASKS.Username = USERS.Username;
-
-CREATE OR REPLACE VIEW task_execution AS
-SELECT TASKS.TaskID, TASKS.TaskType, Executes.MachineID
-FROM TASKS
+CREATE OR REPLACE VIEW task_execution AS SELECT
+    TASKS.TaskID,
+    TASKS.TaskType,
+    Executes.MachineID
+FROM
+    TASKS
 INNER JOIN Executes ON TASKS.TaskID = Executes.TaskID;
-
-CREATE OR REPLACE VIEW admin_overview AS
-SELECT USERS.Username, USERS.Email, USERS.Refers_Username, TIER.TierLevel, COUNT(MACHINE.MachineID)
-FROM USERS
+CREATE OR REPLACE VIEW admin_overview AS SELECT
+    USERS.Username,
+    USERS.Email,
+    USERS.Refers_Username,
+    TIER.TierLevel,
+    COUNT(MACHINE.MachineID)
+FROM
+    USERS
 INNER JOIN TIER ON USERS.TierID = TIER.TierID
 INNER JOIN MACHINE ON USERS.Username = MACHINE.Username
-GROUP BY USERS.Username;
+GROUP BY
+    USERS.Username;
