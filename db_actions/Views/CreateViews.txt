@@ -7,38 +7,38 @@ CREATE OR REPLACE VIEW user_dashboard AS SELECT
     TASKS.TaskID,
     TASKS.TaskType
 FROM
-    DB_USERS
-INNER JOIN TIER ON DB_USERS.TierID = TIER.TierID
-INNER JOIN MACHINE ON DB_USERS.Username = MACHINE.Username
-INNER JOIN TASKS ON DB_USERS.Username = TASKS.Username;
+    DB_USER
+INNER JOIN TIER ON DB_USER.TierID = TIER.TierID
+INNER JOIN MACHINE ON DB_USER.Username = MACHINE.Username
+INNER JOIN TASKS ON DB_USER.Username = TASKS.Username;
 CREATE OR REPLACE VIEW machine_details AS SELECT
     MACHINE.MachineID,
     MACHINE.IPAddress,
     MACHINE.LastCheckIn,
-    DB_USERS.Username,
-    DB_USERS.Email,
+    DB_USER.Username,
+    DB_USER.Email,
     TASKS.TaskID,
     TASKS.TaskType
 FROM
     MACHINE
-INNER JOIN DB_USERS ON DB_USERS.Username = MACHINE.Username
-INNER JOIN TASKS ON TASKS.Username = DB_USERS.Username;
+INNER JOIN DB_USER ON DB_USER.Username = MACHINE.Username
+INNER JOIN TASKS ON TASKS.Username = DB_USER.Username;
 CREATE OR REPLACE VIEW task_execution AS SELECT
     TASKS.TaskID,
     TASKS.TaskType,
-    Executes.MachineID
+    EXECUTES.MachineID
 FROM
     TASKS
-INNER JOIN Executes ON TASKS.TaskID = Executes.TaskID;
+INNER JOIN EXECUTES ON TASKS.TaskID = EXECUTES.TaskID;
 CREATE OR REPLACE VIEW admin_overview AS SELECT
-    DB_USERS.Username,
-    DB_USERS.Email,
-    DB_USERS.Refers_Username,
+    DB_USER.Username,
+    DB_USER.Email,
+    DB_USER.Refers_Username,
     TIER.TierLevel,
     COUNT(MACHINE.MachineID)
 FROM
-    DB_USERS
-INNER JOIN TIER ON DB_USERS.TierID = TIER.TierID
-INNER JOIN MACHINE ON DB_USERS.Username = MACHINE.Username
+    DB_USER
+INNER JOIN TIER ON DB_USER.TierID = TIER.TierID
+INNER JOIN MACHINE ON DB_USER.Username = MACHINE.Username
 GROUP BY
-    DB_USERS.Username;
+    DB_USER.Username;
