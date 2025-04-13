@@ -11,17 +11,19 @@
     <div class="head-bar">
       <!-- Display user's TierID in the header -->
       <h1 id="head-bar-header">Available Machines (Tier {{ tier_id }})</h1>
-      <div class="head-bar-buttons">
+      <div class="head-bar-buttons" style="text-align: right;">
         <!-- Admin button to go to the admin dashboard -->
-        <button type="button" id="admin-button" class="btn" style="width: 100%; margin-bottom: 10px;" onclick="window.location.href='/admin';">Admin</button>
+        <button type="button" id="admin-button" class="btn" onclick="window.location.href='/admin';">Admin</button>
+        <!-- New My Tasks button to redirect to tasks specific to the user -->
+        <button type="button" id="tasks-button" class="btn" onclick="window.location.href='/tasks';">My Tasks</button>
         <!-- Sign Out button (using a POST form) -->
-        <form action="{{ url_for('logout') }}" method="POST">
-          <button type="submit" id="sign-out-button" class="btn" style="width: 100%;">Sign Out</button>
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" id="sign-out-button" class="btn">Sign Out</button>
         </form>
       </div>
     </div>
     
-    <!-- Display JWT Token generated at login -->
+    <!-- Display JWT Token if needed -->
     <div>
       <h3>Your JWT Token:</h3>
       <div class="token-box">
