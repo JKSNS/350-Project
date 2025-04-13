@@ -11,8 +11,9 @@
         <div class="head-bar">
             <h1 id="head-bar-header">Task Dashboard</h1>
             <div class="head-bar-buttons">
-                <button type="submit" id="admin-button">Admin</button>
-                <button type="submit" id="sign-out-button">Sign Out</button>
+                <!-- Changed type="submit" to type="button" and added onclick to redirect to the admin route -->
+                <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
+                <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
             </div>
         </div>
         <h2>Add New Task</h2>
@@ -38,9 +39,9 @@
                 <input type="datetime-local" class="task-input" id="tsk-time" required>
                 <!-- Javascript to dynamically set the minimum input datetime to the current datetime -->
                 <script>
-                    const now = new Date()
-                    const minDate = now.toISOString().slice(0, 16) // Get current datetime in ISO 8601 format
-                    document.getElementById('tsk-time').setAttribute('min', minDate)
+                    const now = new Date();
+                    const minDate = now.toISOString().slice(0, 16); // ISO string truncated to YYYY-MM-DDTHH:MM
+                    document.getElementById('tsk-time').setAttribute('min', minDate);
                 </script>
             </div>
             <button type="submit" id="task-button">Submit</button>
