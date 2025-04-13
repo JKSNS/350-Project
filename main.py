@@ -304,20 +304,16 @@ def declare_status():
     
     return jsonify({"status": "error", "message": "Method not allowed"}), 405
 
+
 @app.route('/admin')
 def admin_dashboard():
-    # 1) Ensure the user is logged in
     if 'username' not in session:
         return redirect(url_for('login'))
-
-    # 2) Retrieve the user from DB
     user = get_user_by_username(session['username'])
-    # 3) Check if they're admin
     if not user or not user['is_admin']:
         return "Forbidden: You must be an admin", 403
-
-    # 4) If admin, show an admin page
     return render_template('admin.html')
+
 
 
 # ------------------------ END ROUTES ------------------------ #
