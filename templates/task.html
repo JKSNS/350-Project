@@ -11,9 +11,11 @@
     <div class="head-bar">
       <h1 id="head-bar-header">Task Dashboard</h1>
       <div class="head-bar-buttons">
-        <!-- Admin button to redirect to the admin dashboard -->
+        <!-- Home button to return to index.html -->
+        <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Home</button>
+        <!-- Admin button to redirect to admin dashboard -->
         <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button (for simplicity, using GET; otherwise adjust logout route) -->
+        <!-- Sign Out button (using GET for simplicity, but consider using a POST form if necessary) -->
         <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
       </div>
     </div>
