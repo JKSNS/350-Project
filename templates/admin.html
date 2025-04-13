@@ -11,8 +11,10 @@
         <div class="head-bar">
             <h1 id="head-bar-header">Admin Dashboard</h1>
             <div class="head-bar-buttons">
-                <button type="submit" id="admin-button">Admin</button>
-                <button type="submit" id="sign-out-button">Sign Out</button>
+                <!-- Reloads the admin page; adjust as needed -->
+                <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
+                <!-- Convert to a form or allow GET for logout -->
+                <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
             </div>
         </div>
         <div id="admin-sections">
@@ -50,8 +52,8 @@
                     <h3 class="account-info-label">Email:</h3>
                     <p class="account-info">filler@filler.com</p>
                 </div>
-                <button type="submit" id="chng-pswd">Change Password</button>
-                <button type="submit" id="del-acct">Delete Account</button>
+                <button type="button" id="chng-pswd" onclick="/* add change password logic here */">Change Password</button>
+                <button type="button" id="del-acct" onclick="/* add delete account logic here */">Delete Account</button>
             </div>
         </div>
     </div>
