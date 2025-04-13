@@ -11,7 +11,7 @@ CREATE TABLE TIER(
     Username INT NOT NULL,
     TierID INT NOT NULL,
     PRIMARY KEY(TransactionID),
-    FOREIGN KEY(Username) REFERENCES USER(Username),
+    FOREIGN KEY(Username) REFERENCES DB_USER(Username),
     FOREIGN KEY(TierID) REFERENCES TIER(TierID)
 ); CREATE TABLE DB_USER(
     PASSWORD INT NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE TIER(
     Refers_Username INT,
     PRIMARY KEY(Username),
     FOREIGN KEY(TierID) REFERENCES TIER(TierID),
-    FOREIGN KEY(Refers_Username) REFERENCES USER(Username)
+    FOREIGN KEY(Refers_Username) REFERENCES DB_USER(Username)
 ); CREATE TABLE MACHINE(
     MachineID INT NOT NULL,
     IPAddress INT NOT NULL,
@@ -35,13 +35,13 @@ CREATE TABLE TIER(
     Username INT NOT NULL,
     PRIMARY KEY(MachineID),
     FOREIGN KEY(TierID) REFERENCES TIER(TierID),
-    FOREIGN KEY(Username) REFERENCES USER(Username)
+    FOREIGN KEY(Username) REFERENCES DB_USER(Username)
 ); CREATE TABLE Tasks(
     TaskID INT NOT NULL,
     TaskType INT NOT NULL,
     Username INT NOT NULL,
     PRIMARY KEY(TaskID),
-    FOREIGN KEY(Username) REFERENCES USER(Username)
+    FOREIGN KEY(Username) REFERENCES DB_USER(Username)
 ); CREATE TABLE Executes(
     TaskID INT NOT NULL,
     MachineID INT NOT NULL,
