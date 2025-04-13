@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="../static/css/styles.css">
 </head>
@@ -11,17 +11,9 @@
     <div class="head-bar">
       <h1 id="head-bar-header">Admin Dashboard</h1>
       <div class="head-bar-buttons">
-        <!-- "Home" button to go back to the index route -->
-        <button 
-          type="button" 
-          id="home-button" 
-          class="btn"
-          onclick="window.location.href='{{ url_for('index') }}';"
-        >
-          Home
-        </button>
-        
-        <!-- If your /logout route requires POST, use a form to POST there -->
+        <!-- Home button to return to the index page -->
+        <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Home</button>
+        <!-- Sign Out button using a POST form -->
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
           <button type="submit" id="sign-out-button" class="btn">Sign Out</button>
         </form>
@@ -29,74 +21,68 @@
     </div>
 
     <div id="admin-sections">
-      <!-- 1) Add New Machine Section -->
+      <!-- Add New Machine Section -->
       <div class="admin-container">
         <h2>Add New Machine</h2>
-        <!-- This form posts to /admin/add_machine in Flask -->
         <form action="{{ url_for('add_machine') }}" method="POST">
           <div class="machine-option">
-            <label class="machine-input-head" for="mch-name">Name:</label>
-            <input type="text" placeholder="Machine name" name="machine_name" id="mch-name" required>
+            <label class="machine-input-head" for="ip_address">IP Address:</label>
+            <input type="text" name="ip_address" id="ip_address" placeholder="e.g., 192.168.0.10" required>
           </div>
           <div class="machine-option">
-            <label class="machine-input-head" for="mch-ip">IP:</label>
-            <input type="text" placeholder="IP address" name="ip_address" id="mch-ip" required>
-          </div>
-          <div class="machine-option">
-            <label class="machine-input-head" for="mch-os">OS:</label>
-            <input type="text" placeholder="Operating system" name="operating_system" id="mch-os" required>
-          </div>
-          <div class="machine-option">
-            <label class="machine-input-head" for="mch-os-ver">OS Version:</label>
-            <input type="text" placeholder="OS version" name="version" id="mch-os-ver" required>
-          </div>
-          <div class="machine-option">
-            <label class="machine-input-head" for="mch-time">Check In:</label>
-            <input type="datetime-local" name="last_checkin" id="mch-time" required>
+            <label class="machine-input-head" for="last_checkin">Last CheckIn:</label>
+            <input type="datetime-local" name="last_checkin" id="last_checkin" required>
             <script>
-              // Dynamically set the min date/time to "now"
               const now = new Date();
               const minDate = now.toISOString().slice(0, 16);
-              document.getElementById('mch-time').setAttribute('min', minDate);
+              document.getElementById('last_checkin').setAttribute('min', minDate);
             </script>
+          </div>
+          <div class="machine-option">
+            <label class="machine-input-head" for="operating_system">Operating System:</label>
+            <input type="text" name="operating_system" id="operating_system" placeholder="e.g., Windows 11" required>
+          </div>
+          <div class="machine-option">
+            <label class="machine-input-head" for="version">Version:</label>
+            <input type="text" name="version" id="version" placeholder="e.g., 22H2" required>
+          </div>
+          <div class="machine-option">
+            <label class="machine-input-head" for="cores">Cores:</label>
+            <input type="number" name="cores" id="cores" placeholder="e.g., 4" required>
+          </div>
+          <div class="machine-option">
+            <label class="machine-input-head" for="ram">RAM (GB):</label>
+            <input type="number" name="ram" id="ram" placeholder="e.g., 16" required>
+          </div>
+          <div class="machine-option">
+            <label class="machine-input-head" for="tier_id">Tier ID:</label>
+            <input type="number" name="tier_id" id="tier_id" placeholder="e.g., 1" required>
+          </div>
+          <div class="machine-option">
+            <label class="machine-input-head" for="username">Username:</label>
+            <input type="text" name="username" id="username" placeholder="Owner's username" required>
           </div>
           <button type="submit" id="machine-button">Submit</button>
         </form>
       </div>
 
-      <!-- 2) Account Info Section -->
+      <!-- Account Info Section -->
       <div class="admin-container">
         <h2>Account Info</h2>
         <form action="{{ url_for('update_account') }}" method="POST">
           <div class="account-info-container">
-            <label class="account-info-label" for="username">Username:</label>
-            <input 
-              type="text" 
-              name="username" 
-              id="username" 
-              placeholder="Enter username" 
-              required
-            />
+            <label class="account-info-label" for="update_username">Username:</label>
+            <input type="text" name="username" id="update_username" placeholder="Enter username" required>
           </div>
           <div class="account-info-container">
             <label class="account-info-label" for="email">Email:</label>
-            <input 
-              type="email" 
-              name="email" 
-              id="email" 
-              placeholder="Enter email"
-            />
+            <input type="email" name="email" id="email" placeholder="Enter email">
           </div>
           <div class="account-info-container">
             <label class="account-info-label" for="new_password">New Password:</label>
-            <input 
-              type="password" 
-              name="new_password" 
-              id="new_password" 
-              placeholder="Enter new password"
-            />
+            <input type="password" name="new_password" id="new_password" placeholder="Enter new password">
           </div>
-          <!-- Additional fields if needed (e.g., tier selection, is_admin toggle, etc.) -->
+          <!-- Add additional fields if needed -->
           <button type="submit" id="update-acct-btn">Update Account</button>
         </form>
       </div>
