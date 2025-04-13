@@ -53,7 +53,7 @@ def check_database():
 def get_user_by_username(username):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM DB_USERS WHERE Username = %s"
+    query = "SELECT * FROM DB_USER WHERE Username = %s"
     cursor.execute(query, (username,))
     user = cursor.fetchone()
     conn.close()
@@ -62,7 +62,7 @@ def get_user_by_username(username):
 def verify_user(username):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT Username, Password FROM DB_USERS WHERE Username = %s"
+    query = "SELECT Username, Password FROM DB_USER WHERE Username = %s"
     cursor.execute(query, (username,))
     user = cursor.fetchone()
     conn.close()
@@ -72,7 +72,7 @@ def create_user(username, password_hash, email=None, tier_id=1, referer=None, is
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    query = "INSERT INTO DB_USERS (Username, Password, Email, TierID, Refers_Username, is_admin) VALUES (%s, %s, %s, %s, %s, %s)"
+    query = "INSERT INTO DB_USER (Username, Password, Email, TierID, Refers_Username, is_admin) VALUES (%s, %s, %s, %s, %s, %s)"
     cursor.execute(query, (username, password_hash, email, tier_id, referer, is_admin))
     
     conn.commit()
