@@ -435,30 +435,16 @@ def update_account():
 
 @app.route('/tasks')
 def tasks_page():
-    # 1) Ensure the user is logged in
     if 'username' not in session:
         return redirect(url_for('login'))
-
-    # 2) Retrieve the user from the DB to get things like TierID
     user = get_user_by_username(session['username'])
-
-    # 3) Pass any variables you want into the template
-    #    (e.g., tier_id, username, or a JWT token if you want)
+    # If your DB_USER has TierID, pass it in; otherwise omit
     return render_template(
         'tasks.html',
         username=user['Username'],
-        tier_id=user['TierID'],   # if your DB_USER has a TierID column
-        token=None                # or token=some_JWT if you want
+        tier_id=user['TierID'],
     )
 
-
-@app.route('/tasks')
-def tasks_page():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    # Optionally, you can retrieve user info if needed:
-    user = get_user_by_username(session['username'])
-    return render_template('tasks.html', username=user['Username'])
 
 
 
