@@ -433,6 +433,16 @@ def update_account():
     return redirect(url_for('admin_dashboard'))
 
 
+@app.route('/tasks')
+def tasks_page():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    user = get_user_by_username(session['username'])
+    # Optionally, generate a JWT or fetch tasks specific to the user
+    # token = create_jwt(user['Username'], user['TierID'])
+    return render_template('tasks.html', username=user['Username'])  # + token if needed
+
+
 
 
 # ------------------------ END ROUTES ------------------------ #
