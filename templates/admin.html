@@ -11,7 +11,17 @@
     <div class="head-bar">
       <h1 id="head-bar-header">Admin Dashboard</h1>
       <div class="head-bar-buttons">
-        <!-- If your /logout route only accepts POST, use a form: -->
+        <!-- "Home" button to go back to the index route -->
+        <button 
+          type="button" 
+          id="home-button" 
+          class="btn"
+          onclick="window.location.href='{{ url_for('index') }}';"
+        >
+          Home
+        </button>
+        
+        <!-- If your /logout route requires POST, use a form to POST there -->
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
           <button type="submit" id="sign-out-button" class="btn">Sign Out</button>
         </form>
@@ -57,22 +67,36 @@
       <!-- 2) Account Info Section -->
       <div class="admin-container">
         <h2>Account Info</h2>
-        <!-- For editing a user account (your own or another user's). 
-             This form posts to /admin/update_account in Flask -->
         <form action="{{ url_for('update_account') }}" method="POST">
           <div class="account-info-container">
             <label class="account-info-label" for="username">Username:</label>
-            <input type="text" name="username" id="username" placeholder="Enter username" required />
+            <input 
+              type="text" 
+              name="username" 
+              id="username" 
+              placeholder="Enter username" 
+              required
+            />
           </div>
           <div class="account-info-container">
             <label class="account-info-label" for="email">Email:</label>
-            <input type="email" name="email" id="email" placeholder="Enter email" />
+            <input 
+              type="email" 
+              name="email" 
+              id="email" 
+              placeholder="Enter email"
+            />
           </div>
           <div class="account-info-container">
             <label class="account-info-label" for="new_password">New Password:</label>
-            <input type="password" name="new_password" id="new_password" placeholder="Enter new password" />
+            <input 
+              type="password" 
+              name="new_password" 
+              id="new_password" 
+              placeholder="Enter new password"
+            />
           </div>
-          <!-- Add more fields if you want to update other user info (e.g. tier, is_admin) -->
+          <!-- Additional fields if needed (e.g., tier selection, is_admin toggle, etc.) -->
           <button type="submit" id="update-acct-btn">Update Account</button>
         </form>
       </div>
