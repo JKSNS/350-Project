@@ -84,52 +84,43 @@ def get_all_agents():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Query agents (now including Cores and Ram)
-    query = """
-      SELECT
-        MachineID,
-        IPAddress,
-        LastCheckIn,
-        OperatingSystem,
-        Version,
-        Cores,
-        Ram,
-        TierID
-      FROM MACHINE
-    """
+    # Query all machines
+    query = "SELECT MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, TierID FROM MACHINE"
     cursor.execute(query)
     machine_data = cursor.fetchall()
 
-    # For each agent, pull its tasks and reshape the row
     for machine in machine_data:
-        mid = machine['MachineID']
-        cursor.execute(
-            "SELECT TaskID, TaskType, Username FROM TASKS WHERE MachineID = %s",
-            (mid,)
-        )
+        MachineID = machine['MachineID']
+
+        # OLD: references old 'Username' column
+        # query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
+
+        # NEW: tasks table references MachineID instead
+        query = "SELECT TaskID, TaskType, MachineID FROM TASKS WHERE MachineID = %s"
+        cursor.execute(query, (MachineID,))
         tasks = cursor.fetchall()
 
-        machine['ID']          = machine.pop('MachineID')
-        machine['IPAddress']   = machine.pop('IPAddress')
+        # Convert 'machine' to original format
+        machine['ID'] = machine.pop('MachineID')
+        machine['IPAddress'] = machine.pop('IPAddress')
         machine['LastCheckin'] = machine.pop('LastCheckIn')
-        machine['Os']          = machine.pop('OperatingSystem')
-        machine['OsVersion']   = machine.pop('Version')
-        machine['Cores']       = machine.pop('Cores')
-        machine['Ram']         = machine.pop('Ram')
-        machine['TierID']      = machine.pop('TierID')
-        machine['Tasks']       = [
-            {
-              'TaskID':     t['TaskID'],
-              'Description':t['TaskType'],
-              'AssignedBy': t['Username']
+        machine['Os'] = machine.pop('OperatingSystem')
+        machine['OsVersion'] = machine.pop('Version')
+        machine['TierID'] = machine.pop('TierID')
+        machine['Tasks'] = []
+
+        # Build the tasks array
+        for task in tasks:
+            task_data = {
+                'TaskID': task['TaskID'],
+                'Description': task['TaskType'],
+                # 'AssignedBy': task['Username']  # No longer exist. Optionally remove or rename
+                'AssignedBy': None  # or remove if not needed
             }
-            for t in tasks
-        ]
+            machine['Tasks'].append(task_data)
 
     conn.close()
     return machine_data
-
-
 
 
 # Function to insert or update agent
@@ -196,21 +187,10 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
+    print("Session contents:", session)
     if 'username' not in session:
         return redirect(url_for('login'))
-
-    user = get_user_by_username(session['username'])
-    if not user:
-        # e.g. if "admin" user doesn't exist in DB
-        return "No such user in DB", 400
-
-    # Pass tier_id (and username) to template
-    return render_template(
-        'index.html',
-        username=user['Username'],
-        tier_id=user['TierID']  # or user.get('TierID')
-    )
-
+    return render_template('index.html', username=session['username'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
