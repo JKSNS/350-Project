@@ -81,46 +81,44 @@ def create_user(username, password_hash, email=None, tier_id=1, referer=None, is
 
 # Function to get all agents with their tasks
 def get_all_agents():
-    conn = get_db_connection()
+    conn   = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Query all machines
-    query = "SELECT MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, TierID FROM MACHINE"
-    cursor.execute(query)
+    # now include Cores & Ram
+    cursor.execute("""
+        SELECT  MachineID, IPAddress, LastCheckIn,
+                OperatingSystem, Version,
+                Cores, Ram, TierID
+          FROM  MACHINE
+    """)
     machine_data = cursor.fetchall()
 
-    for machine in machine_data:
-        MachineID = machine['MachineID']
+    for m in machine_data:
+        mid = m['MachineID']
 
-        # OLD: references old 'Username' column
-        # query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
-
-        # NEW: tasks table references MachineID instead
-        query = "SELECT TaskID, TaskType, MachineID FROM TASKS WHERE MachineID = %s"
-        cursor.execute(query, (MachineID,))
+        cursor.execute(
+            "SELECT TaskID, TaskType, MachineID FROM TASKS WHERE MachineID = %s",
+            (mid,)
+        )
         tasks = cursor.fetchall()
 
-        # Convert 'machine' to original format
-        machine['ID'] = machine.pop('MachineID')
-        machine['IPAddress'] = machine.pop('IPAddress')
-        machine['LastCheckin'] = machine.pop('LastCheckIn')
-        machine['Os'] = machine.pop('OperatingSystem')
-        machine['OsVersion'] = machine.pop('Version')
-        machine['TierID'] = machine.pop('TierID')
-        machine['Tasks'] = []
-
-        # Build the tasks array
-        for task in tasks:
-            task_data = {
-                'TaskID': task['TaskID'],
-                'Description': task['TaskType'],
-                # 'AssignedBy': task['Username']  # No longer exist. Optionally remove or rename
-                'AssignedBy': None  # or remove if not needed
-            }
-            machine['Tasks'].append(task_data)
+        # rename / reshape
+        m['ID']          = m.pop('MachineID')
+        m['IPAddress']   = m.pop('IPAddress')
+        m['LastCheckin'] = m.pop('LastCheckIn')
+        m['Os']          = m.pop('OperatingSystem')
+        m['OsVersion']   = m.pop('Version')
+        m['Cores']       = m.pop('Cores')     #  <-- NEW
+        m['Ram']         = m.pop('Ram')       #  <-- NEW
+        m['TierID']      = m.pop('TierID')
+        m['Tasks']       = [
+            {'TaskID': t['TaskID'], 'Description': t['TaskType']}
+            for t in tasks
+        ]
 
     conn.close()
     return machine_data
+
 
 
 # Function to insert or update agent
@@ -187,10 +185,19 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
-    print("Session contents:", session)
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('index.html', username=session['username'])
+
+    user = get_user_by_username(session['username'])
+
+    # If you’re generating a JWT elsewhere, put it in `token`
+    return render_template(
+        'index.html',
+        username=user['Username'],
+        tier_id=user['TierID'],   #  <-- now available to the template
+        token=None                #  <-- or your real token
+    )
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
