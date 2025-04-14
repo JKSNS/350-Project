@@ -82,12 +82,22 @@
 
   <!-- ───────── JS: fetch /displayagents ───────── -->
   <script>
+  /* ───── helper ───── */
+  function toEpochSeconds(value) {
+    if (typeof value === "number") return value;             // already epoch
+    if (typeof value === "string") {
+      const ms = Date.parse(value);                          // ISO / RFC‑2822
+      return isNaN(ms) ? null : ms / 1000;                   // → seconds
+    }
+    return null;
+  }
+
   function formatTimestamp(ts) {
     return new Date(ts * 1000).toLocaleString();
   }
 
-  // How long a check‑in is considered “fresh” (seconds)
-  const ACTIVE_WINDOW_SEC = 30 * 24 * 60 * 60;   // 30 days
+  /* active = anything within 30 days */
+  const ACTIVE_WINDOW_SEC = 30 * 24 * 60 * 60;   // 2 592 000 s
 
   async function loadAgents() {
     try {
@@ -102,10 +112,7 @@
       const nowSec = Date.now() / 1000;
 
       agents.forEach(agent => {
-        const checkInDisplay =
-          typeof agent.LastCheckin === "number"
-            ? formatTimestamp(agent.LastCheckin)
-            : (agent.LastCheckin || "—");
+        const epoch = toEpochSeconds(agent.LastCheckin);
 
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -113,7 +120,7 @@
           <td>${agent.IPAddress}</td>
           <td>${agent.Os}</td>
           <td>${agent.OsVersion}</td>
-          <td>${checkInDisplay}</td>
+          <td>${epoch ? formatTimestamp(epoch) : (agent.LastCheckin || "—")}</td>
           <td>${agent.Cores ?? "—"}</td>
           <td>${agent.Ram   ?? "—"}</td>
           <td>${
@@ -123,10 +130,7 @@
           }</td>
         `;
 
-        const isActive =
-          typeof agent.LastCheckin === "number" &&
-          nowSec - agent.LastCheckin < ACTIVE_WINDOW_SEC;
-
+        const isActive = epoch !== null && nowSec - epoch < ACTIVE_WINDOW_SEC;
         (isActive ? activeBody : inactiveBody).appendChild(row);
       });
     } catch (err) {
@@ -136,7 +140,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     loadAgents();
-    setInterval(loadAgents, 30000);   // refresh every 30 s (change if you like)
+    setInterval(loadAgents, 30000);   // refresh every 30 s
   });
 </script>
 </body>
