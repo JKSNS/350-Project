@@ -450,26 +450,24 @@ def add_new_task():
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    # Retrieve form data
+    # Retrieve form data from tasks.html
     machine_id = request.form.get('machine_id')
     command = request.form.get('command')
     scheduled_at = request.form.get('scheduled_at')
     
-    # Insert logic for the TASKS table
+    # Insert into TASKS using the correct column "MachineID"
     conn = get_db_connection()
     cursor = conn.cursor()
-    # Adjust the INSERT statement to match your TASKS table schema
     insert_sql = """
-        INSERT INTO TASKS (TaskType, Username)
+        INSERT INTO TASKS (TaskType, MachineID)
         VALUES (%s, %s)
     """
-    # Here we store 'command' as TaskType and use the provided MachineID for Username,
-    # adapt as needed.
     cursor.execute(insert_sql, (command, machine_id))
     conn.commit()
     conn.close()
     
     return redirect(url_for('tasks_page'))
+
 
 
 
