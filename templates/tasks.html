@@ -1,30 +1,58 @@
+<!-- templates/tasks.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Task Dashboard</title>
-  <link rel="stylesheet" href="../static/css/styles.css">
+  <link rel="stylesheet" href="../static/css/styles.css" />
 </head>
+
 <body>
   <div class="page-container">
+    <!-- ───────── header bar ───────── -->
     <div class="head-bar">
       <h1 id="head-bar-header">Task Dashboard</h1>
-      <div class="head-bar-buttons" style="text-align: right;">
-        <!-- Home button to return to index.html -->
-        <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Back</button>
-        <!-- Admin button to redirect to admin dashboard -->
-        <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button; adjust method according to your logout route -->
-        <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
+
+      <div class="head-bar-buttons" style="text-align:right;">
+        <!-- Back to the main machine list -->
+        <button
+          type="button"
+          id="home-button"
+          onclick="window.location.href='{{ url_for('index') }}';">
+          Back
+        </button>
+
+        <!-- Jump to the admin dashboard -->
+        <button
+          type="button"
+          id="admin-button"
+          onclick="window.location.href='/admin';">
+          Admin
+        </button>
+
+        <!-- Proper POST sign‑out (matches other pages) -->
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" id="sign-out-button">Sign&nbsp;Out</button>
+        </form>
       </div>
     </div>
+
+    <!-- ───────── new‑task form ───────── -->
     <h2>Add New Task</h2>
+
     <form action="/tasks/add_task" method="POST" id="task-form">
       <div class="task-option">
-        <h3 class="task-input-head">Machine ID:</h3>
-        <input type="number" placeholder="Input machine ID" class="task-input" name="machine_id" id="machine-id" required>
+        <h3 class="task-input-head">Machine&nbsp;ID:</h3>
+        <input
+          type="number"
+          class="task-input"
+          name="machine_id"
+          id="machine-id"
+          placeholder="Input machine ID"
+          required />
       </div>
+
       <div class="task-option">
         <h3 class="task-input-head">Command:</h3>
         <select class="task-input" name="command" id="cmd" required>
@@ -35,17 +63,28 @@
           <option value="rootkit">rootkit</option>
         </select>
       </div>
+
       <div class="task-option">
-        <h3 class="task-input-head">Scheduled At:</h3>
-        <input type="datetime-local" class="task-input" name="scheduled_at" id="tsk-time" required>
-        <script>
-          const now = new Date();
-          const minDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-          document.getElementById('tsk-time').setAttribute('min', minDate);
-        </script>
+        <h3 class="task-input-head">Scheduled&nbsp;At:</h3>
+        <input
+          type="datetime-local"
+          class="task-input"
+          name="scheduled_at"
+          id="tsk-time"
+          required />
       </div>
+
       <button type="submit" id="task-button">Submit</button>
     </form>
   </div>
+
+  <!-- ───────── JS: set min date‑time to “now” ───────── -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const now      = new Date();
+      const minValue = now.toISOString().slice(0, 16); // YYYY‑MM‑DDTHH:MM
+      document.getElementById("tsk-time").setAttribute("min", minValue);
+    });
+  </script>
 </body>
 </html>
