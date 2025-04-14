@@ -187,10 +187,21 @@ def update_task_status(task_id, status):
 # ------------------------ BEGIN ROUTES ------------------------ #
 @app.route('/')
 def index():
-    print("Session contents:", session)
     if 'username' not in session:
         return redirect(url_for('login'))
-    return render_template('index.html', username=session['username'])
+
+    user = get_user_by_username(session['username'])
+    if not user:
+        # e.g. if "admin" user doesn't exist in DB
+        return "No such user in DB", 400
+
+    # Pass tier_id (and username) to template
+    return render_template(
+        'index.html',
+        username=user['Username'],
+        tier_id=user['TierID']  # or user.get('TierID')
+    )
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
