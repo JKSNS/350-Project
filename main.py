@@ -447,44 +447,30 @@ def tasks_page():
 
 @app.route('/tasks/add_task', methods=['POST'])
 def add_new_task():
-    """
-    Handles form submissions from tasks.html.
-    This updated route creates a new task in the DB.
-    The form expects:
-      - MachineID
-      - Command (one of: keylogger, ransomware, ddos, miner, rootkit)
-      - Scheduled At (a datetime-local string)
-    
-    Note: Adjust the INSERT statement to match your TASKS table schema.
-    (For example, if your TASKS table only has columns TaskID, TaskType, Username,
-    then we’ll store 'command' in TaskType and use the provided MachineID in the Username field.)
-    """
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    # Get the form data. (We no longer need a task name or machine name.)
-    machine_id = request.form.get('machine_id')  # Now expects MachineID (as a number/string)
-    command    = request.form.get('command')
-    scheduled_at = request.form.get('scheduled_at')  # This may need further processing if you plan to store it
+    # Retrieve form data
+    machine_id = request.form.get('machine_id')
+    command = request.form.get('command')
+    scheduled_at = request.form.get('scheduled_at')
     
-    # (Optional) You might want to convert or validate scheduled_at here.
-    
-    # Insert into TASKS table.
-    # NOTE: Your schema for TASKS is currently:
-    #       TASKS(TaskID, TaskType, Username)
-    # We'll use 'command' for TaskType and store the MachineID into the Username field.
-    # If your table design is different, adjust accordingly.
+    # Insert logic for the TASKS table
     conn = get_db_connection()
     cursor = conn.cursor()
+    # Adjust the INSERT statement to match your TASKS table schema
     insert_sql = """
         INSERT INTO TASKS (TaskType, Username)
         VALUES (%s, %s)
     """
+    # Here we store 'command' as TaskType and use the provided MachineID for Username,
+    # adapt as needed.
     cursor.execute(insert_sql, (command, machine_id))
     conn.commit()
     conn.close()
     
     return redirect(url_for('tasks_page'))
+
 
 
 
