@@ -15,24 +15,15 @@
         <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Home</button>
         <!-- Admin button to redirect to admin dashboard -->
         <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button; if your logout route only accepts POST, turn this into a form -->
+        <!-- Sign Out button; adjust method according to your logout route -->
         <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
       </div>
     </div>
     <h2>Add New Task</h2>
-
-    <!-- Example form that posts to /tasks/submit (make sure you define that route) -->
-    <form action="/tasks/submit" method="POST" id="task-form">
+    <form action="/tasks/add_task" method="POST" id="task-form">
       <div class="task-option">
         <h3 class="task-input-head">Machine ID:</h3>
-        <input 
-          type="number" 
-          placeholder="Input machine ID" 
-          class="task-input" 
-          name="machine_id" 
-          id="machine-id"
-          required 
-        >
+        <input type="number" placeholder="Input machine ID" class="task-input" name="machine_id" id="machine-id" required>
       </div>
       <div class="task-option">
         <h3 class="task-input-head">Command:</h3>
@@ -46,15 +37,8 @@
       </div>
       <div class="task-option">
         <h3 class="task-input-head">Scheduled At:</h3>
-        <input 
-          type="datetime-local" 
-          class="task-input" 
-          name="scheduled_at"
-          id="tsk-time"
-          required
-        >
+        <input type="datetime-local" class="task-input" name="scheduled_at" id="tsk-time" required>
         <script>
-          // Dynamically set the "min" attribute to the current date/time
           const now = new Date();
           const minDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
           document.getElementById('tsk-time').setAttribute('min', minDate);
