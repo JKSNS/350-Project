@@ -1,56 +1,52 @@
--------------------------------------------------
--- TIER Table Inserts with Upsert Logic
--------------------------------------------------
-INSERT INTO TIER (TierID, TierName, TierLevel)
-VALUES
-    (1, 'Basic', 1),
-    (2, 'Pro', 2),
-    (3, 'Elite', 3)
-ON DUPLICATE KEY UPDATE
-    TierName  = VALUES(TierName),
-    TierLevel = VALUES(TierLevel);
-
--------------------------------------------------
--- DB_USER Table Inserts
--------------------------------------------------
-INSERT INTO DB_USER (
+-- Insert tiers, updating existing ones to avoid duplicates
+INSERT INTO TIER(TierID, TierName, TierLevel)
+VALUES(1, 'Basic', 1),(2, 'Pro', 2),(3, 'Elite', 3)
+ON DUPLICATE KEY
+UPDATE
+    TierName =
+VALUES(TierName), TierLevel =
+VALUES(TierLevel);
+-- Insert users
+INSERT INTO DB_USER(
     Username,
     PASSWORD,
     Email,
     TierID,
     Refers_Username
 )
-VALUES
-    ('atay001',
-     '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
-     'atay001@example.com',
-     1,
-     NULL),
-    ('bdev002',
-     '6f1ed002ab5595859014ebf0951522d9',
-     'bdev002@example.com',
-     2,
-     'atay001'),
-    ('cops003',
-     '1f3870be274f6c49b3e31a0c6728957f',
-     'cops003@example.com',
-     3,
-     'bdev002'),
-    ('dnet004',
-     '3c59dc048e8850243be8079a5c74d079',
-     'dnet004@example.com',
-     1,
-     NULL),
-    ('epwn005',
-     'b6d767d2f8ed5d21a44b0e5886680cb9',
-     'epwn005@example.com',
-     2,
-     'cops003');
-
--------------------------------------------------
--- SALES_TRANSACTION Table Inserts
--------------------------------------------------
-INSERT INTO SALES_TRANSACTION (
+VALUES(
+    'atay001',
+    '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',
+    'atay001@example.com',
+    1,
+    NULL
+),(
+    'bdev002',
+    '6f1ed002ab5595859014ebf0951522d9',
+    'bdev002@example.com',
+    2,
+    'atay001'
+),(
+    'cops003',
+    '1f3870be274f6c49b3e31a0c6728957f',
+    'cops003@example.com',
+    3,
+    'bdev002'
+),(
+    'dnet004',
+    '3c59dc048e8850243be8079a5c74d079',
+    'dnet004@example.com',
+    1,
+    NULL
+),(
+    'epwn005',
+    'b6d767d2f8ed5d21a44b0e5886680cb9',
+    'epwn005@example.com',
+    2,
+    'cops003'
+);
+-- Insert sales transactions
+INSERT INTO SALES_TRANSACTION(
     TransactionID,
     TimeOfTransaction,
     CryptoUsed,
@@ -58,17 +54,44 @@ INSERT INTO SALES_TRANSACTION (
     Username,
     TierID
 )
-VALUES
-    (1, '2025-02-28', 'XMR', 0.01, 'atay001', 1),
-    (2, '2025-03-01', 'XMR', 0.005, 'bdev002', 2),
-    (3, '2025-03-02', 'XMR', 0.03, 'cops003', 3),
-    (4, '2025-03-03', 'XMR', 0.5, 'dnet004', 1),
-    (5, '2025-03-04', 'XMR', 0.02, 'epwn005', 2);
-
--------------------------------------------------
--- MACHINE Table Inserts (Must occur BEFORE TASKS)
--------------------------------------------------
-INSERT INTO MACHINE (
+VALUES(
+    1,
+    '2025-02-28',
+    'XMR',
+    0.01,
+    'atay001',
+    1
+),(
+    2,
+    '2025-03-01',
+    'XMR',
+    0.005,
+    'bdev002',
+    2
+),(
+    3,
+    '2025-03-02',
+    'XMR',
+    0.03,
+    'cops003',
+    3
+),(
+    4,
+    '2025-03-03',
+    'XMR',
+    0.5,
+    'dnet004',
+    1
+),(
+    5,
+    '2025-03-04',
+    'XMR',
+    0.02,
+    'epwn005',
+    2
+);
+-- Insert machines (parent table for tasks)
+INSERT INTO MACHINE(
     MachineID,
     IPAddress,
     LastCheckIn,
@@ -79,31 +102,60 @@ INSERT INTO MACHINE (
     TierID,
     Username
 )
-VALUES
-    (1, '192.168.0.11', '2025-02-28', 'Windows 11', '24H2', 4, 32, 1, 'atay001'),
-    (2, '192.168.0.12', '2025-03-01', 'Linux', '6.1', 8, 16, 2, 'bdev002'),
-    (3, '192.168.0.13', '2025-03-02', 'macOS', '14.3', 6, 8, 3, 'cops003'),
-    (4, '192.168.0.14', '2025-03-03', 'Windows 10', '22H2', 2, 4, 1, 'dnet004'),
-    (5, '192.168.0.15', '2025-03-04', 'FreeBSD', '13.2', 4, 32, 2, 'epwn005');
-
--------------------------------------------------
--- TASKS Table Inserts (Now referencing MACHINE(MachineID))
--------------------------------------------------
-INSERT INTO TASKS (TaskID, TaskType, MachineID)
-VALUES
-    (1, 'keylogger', 1),
-    (2, 'ransomware', 2),
-    (3, 'ddos', 3),
-    (4, 'miner', 4),
-    (5, 'rootkit', 5);
-
--------------------------------------------------
--- EXECUTES Table Inserts
--------------------------------------------------
-INSERT INTO EXECUTES (TaskID, MachineID)
-VALUES
-    (1, 1),
-    (2, 2),
-    (3, 3),
-    (4, 4),
-    (5, 5);
+VALUES(
+    1,
+    '192.168.0.11',
+    '2025-02-28',
+    'Windows 11',
+    '24H2',
+    4,
+    32,
+    1,
+    'atay001'
+),(
+    2,
+    '192.168.0.12',
+    '2025-03-01',
+    'Linux',
+    '6.1',
+    8,
+    16,
+    2,
+    'bdev002'
+),(
+    3,
+    '192.168.0.13',
+    '2025-03-02',
+    'macOS',
+    '14.3',
+    6,
+    8,
+    3,
+    'cops003'
+),(
+    4,
+    '192.168.0.14',
+    '2025-03-03',
+    'Windows 10',
+    '22H2',
+    2,
+    4,
+    1,
+    'dnet004'
+),(
+    5,
+    '192.168.0.15',
+    '2025-03-04',
+    'FreeBSD',
+    '13.2',
+    4,
+    32,
+    2,
+    'epwn005'
+);
+-- Insert tasks (child table, now referencing MACHINE)
+INSERT INTO TASKS(TaskID, TaskType, MachineID)
+VALUES(1, 'keylogger', 1),(2, 'ransomware', 2),(3, 'ddos', 3),(4, 'miner', 4),(5, 'rootkit', 5);
+-- Insert executes relationships
+INSERT INTO EXECUTES(TaskID, MachineID)
+VALUES(1, 1),(2, 2),(3, 3),(4, 4),(5, 5);
