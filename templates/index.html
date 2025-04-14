@@ -4,13 +4,11 @@
   <meta charset="UTF‑8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Available Machines</title>
-
-  <!-- your global stylesheet -->
   <link rel="stylesheet" href="../static/css/styles.css" />
 </head>
 <body>
   <div class="page-container">
-    <!-- ─────────────── header bar ─────────────── -->
+    <!-- ───────── header bar ───────── -->
     <div class="head-bar">
       <h1 id="head-bar-header">
         Available Machines (Tier {{ tier_id }})
@@ -25,7 +23,6 @@
           Admin
         </button>
 
-        <!-- green “My Tasks” button -->
         <button
           type="button"
           id="tasks-button"
@@ -34,31 +31,15 @@
           My Tasks
         </button>
 
-        <form
-          action="{{ url_for('logout') }}"
-          method="POST"
-          style="display:inline;">
-          <button
-            type="submit"
-            id="sign-out-button"
-            class="btn btn-red">
+        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
+          <button type="submit" id="sign-out-button" class="btn btn-red">
             Sign Out
           </button>
         </form>
       </div>
     </div>
 
-    <!-- ─────────────── token display ─────────────── -->
-    <div>
-      <h3>Your JWT Token:</h3>
-      <div class="token-box">{{ token or '— none —' }}</div>
-      <p>
-        Use this token in the header of your API requests as
-        <code>x‑access‑token</code>.
-      </p>
-    </div>
-
-    <!-- ─────────────── active machines ─────────────── -->
+    <!-- ───────── active machines ───────── -->
     <div class="machine-table">
       <h2 id="active-machines">Active Machines</h2>
       <table>
@@ -78,7 +59,7 @@
       </table>
     </div>
 
-    <!-- ─────────────── inactive machines ─────────────── -->
+    <!-- ───────── inactive machines ───────── -->
     <div class="machine-table">
       <h2 id="inactive-machines">Inactive Machines</h2>
       <table>
@@ -99,9 +80,8 @@
     </div>
   </div>
 
-  <!-- ─────────────── JS to pull /displayagents ─────────────── -->
+  <!-- ───────── JS: fetch /displayagents ───────── -->
   <script>
-    /* Convert epoch‑seconds to local date string */
     function formatTimestamp(ts) {
       return new Date(ts * 1000).toLocaleString();
     }
@@ -119,7 +99,6 @@
         const nowSec = Date.now() / 1000;
 
         agents.forEach(agent => {
-          /* LastCheckin may be a number (epoch) or a string date */
           const checkInDisplay =
             typeof agent.LastCheckin === "number"
               ? formatTimestamp(agent.LastCheckin)
@@ -154,7 +133,7 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       loadAgents();
-      setInterval(loadAgents, 30_000); // refresh every 30 s
+      setInterval(loadAgents, 30000); // refresh every 30 s
     });
   </script>
 </body>
