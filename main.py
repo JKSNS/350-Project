@@ -83,20 +83,24 @@ def create_user(username, password_hash, email=None, tier_id=1, referer=None, is
 def get_all_agents():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    
-    # Query agents
+
+    # Query all machines
     query = "SELECT MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, TierID FROM MACHINE"
     cursor.execute(query)
     machine_data = cursor.fetchall()
-    
-    # For each agent, get their tasks
+
     for machine in machine_data:
         MachineID = machine['MachineID']
-        query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
+
+        # OLD: references old 'Username' column
+        # query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
+
+        # NEW: tasks table references MachineID instead
+        query = "SELECT TaskID, TaskType, MachineID FROM TASKS WHERE MachineID = %s"
         cursor.execute(query, (MachineID,))
         tasks = cursor.fetchall()
-        
-        # Convert to format matching the original app
+
+        # Convert 'machine' to original format
         machine['ID'] = machine.pop('MachineID')
         machine['IPAddress'] = machine.pop('IPAddress')
         machine['LastCheckin'] = machine.pop('LastCheckIn')
@@ -104,20 +108,20 @@ def get_all_agents():
         machine['OsVersion'] = machine.pop('Version')
         machine['TierID'] = machine.pop('TierID')
         machine['Tasks'] = []
-        
+
+        # Build the tasks array
         for task in tasks:
             task_data = {
                 'TaskID': task['TaskID'],
                 'Description': task['TaskType'],
-                'AssignedBy': task['Username']
+                # 'AssignedBy': task['Username']  # No longer exist. Optionally remove or rename
+                'AssignedBy': None  # or remove if not needed
             }
             machine['Tasks'].append(task_data)
-    
-        # # Remove internal database ID
-        # machine.pop('MachineID')
-        
+
     conn.close()
     return machine_data
+
 
 # Function to insert or update agent
 def save_agent(agent_uuid, ip_address, status, os_name=None, os_version=None, web_shell_active=False):
