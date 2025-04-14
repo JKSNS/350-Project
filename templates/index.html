@@ -1,39 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta charset="UTF‑8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Available Machines</title>
-  <link rel="stylesheet" href="../static/css/styles.css">
+
+  <!-- your global stylesheet -->
+  <link rel="stylesheet" href="../static/css/styles.css" />
 </head>
 <body>
   <div class="page-container">
+    <!-- ─────────────── header bar ─────────────── -->
     <div class="head-bar">
       <h1 id="head-bar-header">
         Available Machines (Tier {{ tier_id }})
       </h1>
+
       <div class="head-bar-buttons">
-        <button type="button" id="admin-button" onclick="window.location.href='/admin';">
+        <button
+          type="button"
+          id="admin-button"
+          class="btn btn-blue"
+          onclick="window.location.href='/admin';">
           Admin
         </button>
-        <button type="button" id="tasks-button" onclick="window.location.href='/tasks';">
-          My Tasks
+
+        <!-- green “My Tasks” button -->
+        <button
+          type="button"
+          id="tasks-button"
+          class="btn btn-green"
+          onclick="window.location.href='/tasks';">
+          My Tasks
         </button>
-        <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-          <button type="submit" id="sign-out-button">Sign Out</button>
+
+        <form
+          action="{{ url_for('logout') }}"
+          method="POST"
+          style="display:inline;">
+          <button
+            type="submit"
+            id="sign-out-button"
+            class="btn btn-red">
+            Sign Out
+          </button>
         </form>
       </div>
     </div>
 
+    <!-- ─────────────── token display ─────────────── -->
     <div>
-      <h3>Your JWT Token:</h3>
+      <h3>Your JWT Token:</h3>
       <div class="token-box">{{ token or '— none —' }}</div>
       <p>
         Use this token in the header of your API requests as
-        <code>x-access-token</code> to access protected routes.
+        <code>x‑access‑token</code>.
       </p>
     </div>
 
+    <!-- ─────────────── active machines ─────────────── -->
     <div class="machine-table">
       <h2 id="active-machines">Active Machines</h2>
       <table>
@@ -43,9 +68,9 @@
             <th>IP</th>
             <th>OS</th>
             <th>Version</th>
-            <th>Check In</th>
+            <th>Check In</th>
             <th>Cores</th>
-            <th>RAM (GB)</th>
+            <th>RAM (GB)</th>
             <th>Tasks</th>
           </tr>
         </thead>
@@ -53,6 +78,7 @@
       </table>
     </div>
 
+    <!-- ─────────────── inactive machines ─────────────── -->
     <div class="machine-table">
       <h2 id="inactive-machines">Inactive Machines</h2>
       <table>
@@ -62,9 +88,9 @@
             <th>IP</th>
             <th>OS</th>
             <th>Version</th>
-            <th>Check In</th>
+            <th>Check In</th>
             <th>Cores</th>
-            <th>RAM (GB)</th>
+            <th>RAM (GB)</th>
             <th>Tasks</th>
           </tr>
         </thead>
@@ -73,69 +99,62 @@
     </div>
   </div>
 
+  <!-- ─────────────── JS to pull /displayagents ─────────────── -->
   <script>
+    /* Convert epoch‑seconds to local date string */
     function formatTimestamp(ts) {
-      // ts is seconds since epoch
-      const date = new Date(ts * 1000);
-      return date.toLocaleString();
+      return new Date(ts * 1000).toLocaleString();
     }
 
     async function loadAgents() {
       try {
-        const resp = await fetch('/displayagents');
-        const agents = await resp.json();
+        const res    = await fetch("/displayagents");
+        const agents = await res.json();
 
-        const activeBody = document.getElementById('activeMachinesBody');
-        const inactiveBody = document.getElementById('inactiveMachinesBody');
-        activeBody.innerHTML = '';
-        inactiveBody.innerHTML = '';
+        const activeBody   = document.getElementById("activeMachinesBody");
+        const inactiveBody = document.getElementById("inactiveMachinesBody");
+        activeBody.innerHTML   = "";
+        inactiveBody.innerHTML = "";
 
         const nowSec = Date.now() / 1000;
 
         agents.forEach(agent => {
-          // Determine if agent.LastCheckin is numeric (timestamp) or a string
-          let checkInDisplay;
-          if (typeof agent.LastCheckin === 'number') {
-            checkInDisplay = formatTimestamp(agent.LastCheckin);
-          } else {
-            // assume it's a string like '2025-03-01'
-            checkInDisplay = agent.LastCheckin || '—';
-          }
+          /* LastCheckin may be a number (epoch) or a string date */
+          const checkInDisplay =
+            typeof agent.LastCheckin === "number"
+              ? formatTimestamp(agent.LastCheckin)
+              : (agent.LastCheckin || "—");
 
-          // Build row HTML
-          const row = document.createElement('tr');
+          const row = document.createElement("tr");
           row.innerHTML = `
             <td>${agent.ID}</td>
             <td>${agent.IPAddress}</td>
             <td>${agent.Os}</td>
             <td>${agent.OsVersion}</td>
             <td>${checkInDisplay}</td>
-            <td>${agent.Cores ?? '—'}</td>
-            <td>${agent.Ram ?? '—'}</td>
-            <td>
-              ${
-                agent.Tasks.length > 0
-                  ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join('')
-                  : 'No tasks'
-              }
-            </td>
+            <td>${agent.Cores ?? "—"}</td>
+            <td>${agent.Ram   ?? "—"}</td>
+            <td>${
+              agent.Tasks.length
+                ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join("")
+                : "No tasks"
+            }</td>
           `;
 
-          // Active if last checkin within 5 minutes
-          if (nowSec - (typeof agent.LastCheckin === 'number' ? agent.LastCheckin : 0) < 300) {
-            activeBody.appendChild(row);
-          } else {
-            inactiveBody.appendChild(row);
-          }
+          const isActive =
+            typeof agent.LastCheckin === "number" &&
+            nowSec - agent.LastCheckin < 300;
+
+          (isActive ? activeBody : inactiveBody).appendChild(row);
         });
       } catch (err) {
-        console.error('Error loading agents:', err);
+        console.error("Error loading agents:", err);
       }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener("DOMContentLoaded", () => {
       loadAgents();
-      setInterval(loadAgents, 30000); // refresh every 30s
+      setInterval(loadAgents, 30_000); // refresh every 30 s
     });
   </script>
 </body>
