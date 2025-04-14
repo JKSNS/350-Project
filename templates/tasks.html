@@ -12,42 +12,73 @@
       <h1 id="head-bar-header">Task Dashboard</h1>
       <div class="head-bar-buttons" style="text-align: right;">
         <!-- Home button to return to index.html -->
-        <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Back</button>
+        <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Home</button>
         <!-- Admin button to redirect to admin dashboard -->
         <button type="button" id="admin-button" onclick="window.location.href='/admin';">Admin</button>
-        <!-- Sign Out button; if your logout route only accepts POST, consider converting this to a form -->
+        <!-- Sign Out button; if your logout route uses POST, switch this to a form -->
         <button type="button" id="sign-out-button" onclick="window.location.href='/logout';">Sign Out</button>
       </div>
     </div>
+
     <h2>Add New Task</h2>
-    <div id="task-container">
-      <div class="task-option">
-        <h3 class="task-input-head">Task Name:</h3>
-        <input type="text" placeholder="Input task name" class="task-input" id="tsk-name" required>
+
+    <!-- Wrap fields in a form that POSTS to /tasks/add_task -->
+    <form action="/tasks/add_task" method="POST" id="taskForm">
+      <div id="task-container">
+        <div class="task-option">
+          <h3 class="task-input-head">Task Name:</h3>
+          <input
+            type="text"
+            name="task_name"
+            placeholder="Input task name"
+            class="task-input"
+            id="tsk-name"
+            required
+          >
+        </div>
+
+        <div class="task-option">
+          <h3 class="task-input-head">Machine Name:</h3>
+          <input
+            type="text"
+            name="machine_name"
+            placeholder="Input machine name"
+            class="task-input"
+            id="comp-name"
+            required
+          >
+        </div>
+
+        <div class="task-option">
+          <h3 class="task-input-head">Command:</h3>
+          <select class="task-input" id="cmd" name="command" required>
+            <option value="keylogger">keylogger</option>
+            <option value="ransomware">ransomware</option>
+            <option value="ddos">ddos</option>
+            <option value="miner">miner</option>
+            <option value="rootkit">rootkit</option>
+          </select>
+        </div>
+
+        <div class="task-option">
+          <h3 class="task-input-head">Scheduled At:</h3>
+          <input
+            type="datetime-local"
+            name="scheduled_at"
+            class="task-input"
+            id="tsk-time"
+            required
+          >
+          <script>
+            const now = new Date();
+            const minDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+            document.getElementById('tsk-time').setAttribute('min', minDate);
+          </script>
+        </div>
       </div>
-      <div class="task-option">
-        <h3 class="task-input-head">Machine Name:</h3>
-        <input type="text" placeholder="Input machine name" class="task-input" id="comp-name" required>
-      </div>
-      <div class="task-option">
-        <h3 class="task-input-head">Command:</h3>
-        <select class="task-input" id="cmd" required>
-          <option value="1">Filler 1</option>
-          <option value="2">Filler 2</option>
-          <option value="3">Filler 3</option>
-        </select>
-      </div>
-      <div class="task-option">
-        <h3 class="task-input-head">Scheduled At:</h3>
-        <input type="datetime-local" class="task-input" id="tsk-time" required>
-        <script>
-          const now = new Date();
-          const minDate = now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-          document.getElementById('tsk-time').setAttribute('min', minDate);
-        </script>
-      </div>
+
       <button type="submit" id="task-button">Submit</button>
-    </div>
+    </form>
   </div>
 </body>
 </html>
