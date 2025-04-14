@@ -13,22 +13,14 @@
         Available Machines (Tier {{ tier_id }})
       </h1>
       <div class="head-bar-buttons">
-        <button
-          type="button"
-          id="admin-button"
-          class="btn btn-blue"
-          onclick="window.location.href='/admin';">
+        <button type="button" id="admin-button" onclick="window.location.href='/admin';">
           Admin
         </button>
-        <button
-          type="button"
-          id="tasks-button"
-          class="btn btn-green"
-          onclick="window.location.href='/tasks';">
+        <button type="button" id="tasks-button" onclick="window.location.href='/tasks';">
           My Tasks
         </button>
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-          <button type="submit" class="btn btn-red">Sign Out</button>
+          <button type="submit" id="sign-out-button">Sign Out</button>
         </form>
       </div>
     </div>
@@ -83,6 +75,7 @@
 
   <script>
     function formatTimestamp(ts) {
+      // ts is seconds since epoch
       const date = new Date(ts * 1000);
       return date.toLocaleString();
     }
@@ -92,7 +85,7 @@
         const resp = await fetch('/displayagents');
         const agents = await resp.json();
 
-        const activeBody   = document.getElementById('activeMachinesBody');
+        const activeBody = document.getElementById('activeMachinesBody');
         const inactiveBody = document.getElementById('inactiveMachinesBody');
         activeBody.innerHTML = '';
         inactiveBody.innerHTML = '';
@@ -100,13 +93,16 @@
         const nowSec = Date.now() / 1000;
 
         agents.forEach(agent => {
+          // Determine if agent.LastCheckin is numeric (timestamp) or a string
           let checkInDisplay;
           if (typeof agent.LastCheckin === 'number') {
             checkInDisplay = formatTimestamp(agent.LastCheckin);
           } else {
+            // assume it's a string like '2025-03-01'
             checkInDisplay = agent.LastCheckin || '—';
           }
 
+          // Build row HTML
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${agent.ID}</td>
@@ -115,7 +111,7 @@
             <td>${agent.OsVersion}</td>
             <td>${checkInDisplay}</td>
             <td>${agent.Cores ?? '—'}</td>
-            <td>${agent.Ram   ?? '—'}</td>
+            <td>${agent.Ram ?? '—'}</td>
             <td>
               ${
                 agent.Tasks.length > 0
@@ -125,6 +121,7 @@
             </td>
           `;
 
+          // Active if last checkin within 5 minutes
           if (nowSec - (typeof agent.LastCheckin === 'number' ? agent.LastCheckin : 0) < 300) {
             activeBody.appendChild(row);
           } else {
@@ -138,7 +135,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       loadAgents();
-      setInterval(loadAgents, 30000);
+      setInterval(loadAgents, 30000); // refresh every 30s
     });
   </script>
 </body>
