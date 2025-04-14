@@ -1,37 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Main Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Available Machines</title>
   <link rel="stylesheet" href="../static/css/styles.css">
 </head>
 <body>
   <div class="page-container">
     <div class="head-bar">
-      <!-- Display user's TierID in the header -->
-      <h1 id="head-bar-header">Available Machines (Tier {{ tier_id }})</h1>
-      <div class="head-bar-buttons" style="text-align: right;">
-        <!-- Admin button to go to the admin dashboard -->
-        <button type="button" id="admin-button" class="btn" onclick="window.location.href='/admin';">Admin</button>
-        <!-- New My Tasks button to redirect to tasks specific to the user -->
-        <button type="button" id="tasks-button" class="btn" onclick="window.location.href='/tasks';">My Tasks</button>
-        <!-- Sign Out button (using a POST form) -->
+      <h1 id="head-bar-header">
+        Available Machines (Tier {{ tier_id }})
+      </h1>
+      <div class="head-bar-buttons">
+        <button type="button" id="admin-button" onclick="window.location.href='/admin';">
+          Admin
+        </button>
+        <button type="button" id="tasks-button" onclick="window.location.href='/tasks';">
+          My Tasks
+        </button>
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-          <button type="submit" id="sign-out-button" class="btn">Sign Out</button>
+          <button type="submit" id="sign-out-button">Sign Out</button>
         </form>
       </div>
     </div>
-    
-    <!-- Display JWT Token if needed -->
+
     <div>
       <h3>Your JWT Token:</h3>
-      <div class="token-box">
-        {{ token }}
-      </div>
-      <p>Use this token in the header of your API requests as "x-access-token" to access protected routes.</p>
+      <div class="token-box">{{ token or '— none —' }}</div>
+      <p>
+        Use this token in the header of your API requests as
+        <code>x-access-token</code> to access protected routes.
+      </p>
     </div>
-    
+
     <div class="machine-table">
       <h2 id="active-machines">Active Machines</h2>
       <table>
@@ -47,12 +49,10 @@
             <th>Tasks</th>
           </tr>
         </thead>
-        <tbody id="activeMachinesBody">
-          <!-- Active machines will be inserted by JavaScript -->
-        </tbody>
+        <tbody id="activeMachinesBody"></tbody>
       </table>
     </div>
-    
+
     <div class="machine-table">
       <h2 id="inactive-machines">Inactive Machines</h2>
       <table>
@@ -68,61 +68,74 @@
             <th>Tasks</th>
           </tr>
         </thead>
-        <tbody id="inactiveMachinesBody">
-          <!-- Inactive machines will be inserted by JavaScript -->
-        </tbody>
+        <tbody id="inactiveMachinesBody"></tbody>
       </table>
     </div>
   </div>
-  
+
   <script>
-    function formatTimestamp(unixSeconds) {
-      if (!unixSeconds) return 'Invalid Date';
-      const date = new Date(unixSeconds * 1000);
+    function formatTimestamp(ts) {
+      // ts is seconds since epoch
+      const date = new Date(ts * 1000);
       return date.toLocaleString();
     }
 
     async function loadAgents() {
       try {
-        const response = await fetch('/displayagents');
-        const agents = await response.json();
+        const resp = await fetch('/displayagents');
+        const agents = await resp.json();
 
         const activeBody = document.getElementById('activeMachinesBody');
         const inactiveBody = document.getElementById('inactiveMachinesBody');
         activeBody.innerHTML = '';
         inactiveBody.innerHTML = '';
 
+        const nowSec = Date.now() / 1000;
+
         agents.forEach(agent => {
-          const isActive = (Date.now() / 1000) - agent.LastCheckin < 300;
+          // Determine if agent.LastCheckin is numeric (timestamp) or a string
+          let checkInDisplay;
+          if (typeof agent.LastCheckin === 'number') {
+            checkInDisplay = formatTimestamp(agent.LastCheckin);
+          } else {
+            // assume it's a string like '2025-03-01'
+            checkInDisplay = agent.LastCheckin || '—';
+          }
+
+          // Build row HTML
           const row = document.createElement('tr');
           row.innerHTML = `
             <td>${agent.ID}</td>
             <td>${agent.IPAddress}</td>
             <td>${agent.Os}</td>
             <td>${agent.OsVersion}</td>
-            <td>${formatTimestamp(agent.LastCheckin)}</td>
-            <td>${agent.Cores}</td>
-            <td>${agent.Ram}</td>
+            <td>${checkInDisplay}</td>
+            <td>${agent.Cores ?? '—'}</td>
+            <td>${agent.Ram ?? '—'}</td>
             <td>
-              ${agent.Tasks.length > 0
-                ? agent.Tasks.map(task => `<div>${task.Description} (${task.AssignedBy})</div>`).join('')
-                : 'No tasks'}
+              ${
+                agent.Tasks.length > 0
+                  ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join('')
+                  : 'No tasks'
+              }
             </td>
           `;
-          if (isActive) {
+
+          // Active if last checkin within 5 minutes
+          if (nowSec - (typeof agent.LastCheckin === 'number' ? agent.LastCheckin : 0) < 300) {
             activeBody.appendChild(row);
           } else {
             inactiveBody.appendChild(row);
           }
         });
-      } catch (error) {
-        console.error('Error loading agents:', error);
+      } catch (err) {
+        console.error('Error loading agents:', err);
       }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       loadAgents();
-      setInterval(loadAgents, 30000); // Auto refresh every 30 seconds
+      setInterval(loadAgents, 30000); // refresh every 30s
     });
   </script>
 </body>
