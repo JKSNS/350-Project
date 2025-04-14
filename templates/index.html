@@ -82,59 +82,62 @@
 
   <!-- ───────── JS: fetch /displayagents ───────── -->
   <script>
-    function formatTimestamp(ts) {
-      return new Date(ts * 1000).toLocaleString();
+  function formatTimestamp(ts) {
+    return new Date(ts * 1000).toLocaleString();
+  }
+
+  // How long a check‑in is considered “fresh” (seconds)
+  const ACTIVE_WINDOW_SEC = 30 * 24 * 60 * 60;   // 30 days
+
+  async function loadAgents() {
+    try {
+      const res    = await fetch("/displayagents");
+      const agents = await res.json();
+
+      const activeBody   = document.getElementById("activeMachinesBody");
+      const inactiveBody = document.getElementById("inactiveMachinesBody");
+      activeBody.innerHTML   = "";
+      inactiveBody.innerHTML = "";
+
+      const nowSec = Date.now() / 1000;
+
+      agents.forEach(agent => {
+        const checkInDisplay =
+          typeof agent.LastCheckin === "number"
+            ? formatTimestamp(agent.LastCheckin)
+            : (agent.LastCheckin || "—");
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${agent.ID}</td>
+          <td>${agent.IPAddress}</td>
+          <td>${agent.Os}</td>
+          <td>${agent.OsVersion}</td>
+          <td>${checkInDisplay}</td>
+          <td>${agent.Cores ?? "—"}</td>
+          <td>${agent.Ram   ?? "—"}</td>
+          <td>${
+            agent.Tasks.length
+              ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join("")
+              : "No tasks"
+          }</td>
+        `;
+
+        const isActive =
+          typeof agent.LastCheckin === "number" &&
+          nowSec - agent.LastCheckin < ACTIVE_WINDOW_SEC;
+
+        (isActive ? activeBody : inactiveBody).appendChild(row);
+      });
+    } catch (err) {
+      console.error("Error loading agents:", err);
     }
+  }
 
-    async function loadAgents() {
-      try {
-        const res    = await fetch("/displayagents");
-        const agents = await res.json();
-
-        const activeBody   = document.getElementById("activeMachinesBody");
-        const inactiveBody = document.getElementById("inactiveMachinesBody");
-        activeBody.innerHTML   = "";
-        inactiveBody.innerHTML = "";
-
-        const nowSec = Date.now() / 1000;
-
-        agents.forEach(agent => {
-          const checkInDisplay =
-            typeof agent.LastCheckin === "number"
-              ? formatTimestamp(agent.LastCheckin)
-              : (agent.LastCheckin || "—");
-
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${agent.ID}</td>
-            <td>${agent.IPAddress}</td>
-            <td>${agent.Os}</td>
-            <td>${agent.OsVersion}</td>
-            <td>${checkInDisplay}</td>
-            <td>${agent.Cores ?? "—"}</td>
-            <td>${agent.Ram   ?? "—"}</td>
-            <td>${
-              agent.Tasks.length
-                ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join("")
-                : "No tasks"
-            }</td>
-          `;
-
-          const isActive =
-            typeof agent.LastCheckin === "number" &&
-            nowSec - agent.LastCheckin < 300;
-
-          (isActive ? activeBody : inactiveBody).appendChild(row);
-        });
-      } catch (err) {
-        console.error("Error loading agents:", err);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      loadAgents();
-      setInterval(loadAgents, 30000); // refresh every 30 s
-    });
-  </script>
+  document.addEventListener("DOMContentLoaded", () => {
+    loadAgents();
+    setInterval(loadAgents, 30000);   // refresh every 30 s (change if you like)
+  });
+</script>
 </body>
 </html>
