@@ -80,47 +80,56 @@ def create_user(username, password_hash, email=None, tier_id=1, referer=None, is
     return username  
 
 # Function to get all agents with their tasks
-def get_all_agents():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+ def get_all_agents():
+     conn = get_db_connection()
+     cursor = conn.cursor(dictionary=True)
+-    
+-    # Query agents
+-    query = "SELECT MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, TierID FROM MACHINE"
++    # Query agents (now including Cores and Ram)
++    query = """
++      SELECT MachineID,
++             IPAddress,
++             LastCheckIn,
++             OperatingSystem,
++             Version,
++             Cores,
++             Ram,
++             TierID
++        FROM MACHINE
++    """
+     cursor.execute(query)
+     machine_data = cursor.fetchall()
+     
+     # For each agent, get their tasks
+     for machine in machine_data:
+         MachineID = machine['MachineID']
+         query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
+         cursor.execute(query, (MachineID,))
+         tasks = cursor.fetchall()
+         
+         # Convert to format matching the original app
+         machine['ID']          = machine.pop('MachineID')
+         machine['IPAddress']   = machine.pop('IPAddress')
+         machine['LastCheckin'] = machine.pop('LastCheckIn')
+         machine['Os']          = machine.pop('OperatingSystem')
+         machine['OsVersion']   = machine.pop('Version')
++        machine['Cores']       = machine.pop('Cores')
++        machine['Ram']         = machine.pop('Ram')
+         machine['TierID']      = machine.pop('TierID')
+         machine['Tasks']       = []
+         
+         for task in tasks:
+             task_data = {
+                 'TaskID':     task['TaskID'],
+                 'Description':task['TaskType'],
+                 'AssignedBy': task['Username']
+             }
+             machine['Tasks'].append(task_data)
+     
+     conn.close()
+     return machine_data
 
-    # Query all machines
-    query = "SELECT MachineID, IPAddress, LastCheckIn, OperatingSystem, Version, TierID FROM MACHINE"
-    cursor.execute(query)
-    machine_data = cursor.fetchall()
-
-    for machine in machine_data:
-        MachineID = machine['MachineID']
-
-        # OLD: references old 'Username' column
-        # query = "SELECT TaskID, TaskType, Username FROM TASKS WHERE Username = %s"
-
-        # NEW: tasks table references MachineID instead
-        query = "SELECT TaskID, TaskType, MachineID FROM TASKS WHERE MachineID = %s"
-        cursor.execute(query, (MachineID,))
-        tasks = cursor.fetchall()
-
-        # Convert 'machine' to original format
-        machine['ID'] = machine.pop('MachineID')
-        machine['IPAddress'] = machine.pop('IPAddress')
-        machine['LastCheckin'] = machine.pop('LastCheckIn')
-        machine['Os'] = machine.pop('OperatingSystem')
-        machine['OsVersion'] = machine.pop('Version')
-        machine['TierID'] = machine.pop('TierID')
-        machine['Tasks'] = []
-
-        # Build the tasks array
-        for task in tasks:
-            task_data = {
-                'TaskID': task['TaskID'],
-                'Description': task['TaskType'],
-                # 'AssignedBy': task['Username']  # No longer exist. Optionally remove or rename
-                'AssignedBy': None  # or remove if not needed
-            }
-            machine['Tasks'].append(task_data)
-
-    conn.close()
-    return machine_data
 
 
 # Function to insert or update agent
