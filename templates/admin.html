@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="admin-grid">
+    <div id="admin-sections">
       <!-- Add New Machine Section -->
       <div class="admin-container">
         <h2>Add New Machine</h2>
@@ -67,24 +67,98 @@
         </form>
       </div>
 
-      <!-- Machines List Section -->
-      <div class="admin-container manage-machines">
+      <!-- Machines List Section (Add this section) -->
+      <div class="admin-container">
         <h2>Manage Machines</h2>
         <div id="machines-list">
-          <table class="machines-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>IP Address</th>
-                <th>OS</th>
-                <th>Last Checkin</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="machines-body">
-              <!-- This will be populated by JavaScript -->
-            </tbody>
-          </table>
+          <!-- This section would be populated dynamically with machines data -->
+          <!-- For example: -->
+          <script>
+            // Fetch machines when page loads
+            document.addEventListener('DOMContentLoaded', function() {
+              fetch('/displayagents')
+                .then(response => response.json())
+                .then(machines => {
+                  const machinesList = document.getElementById('machines-list');
+                  machinesList.innerHTML = ''; // Clear any existing content
+
+                  if (machines.length === 0) {
+                    machinesList.innerHTML = '<p>No machines found.</p>';
+                    return;
+                  }
+
+                  // Create a table for machines
+                  const table = document.createElement('table');
+                  table.className = 'machines-table';
+
+                  // Table header
+                  const thead = document.createElement('thead');
+                  thead.innerHTML = `
+                    <tr>
+                      <th>ID</th>
+                      <th>IP Address</th>
+                      <th>OS</th>
+                      <th>Last Checkin</th>
+                      <th>Actions</th>
+                    </tr>
+                  `;
+                  table.appendChild(thead);
+
+                  // Table body
+                  const tbody = document.createElement('tbody');
+                  machines.forEach(machine => {
+                    const tr = document.createElement('tr');
+                    tr.id = `machine-${machine.ID}`;
+                    tr.innerHTML = `
+                      <td>${machine.ID}</td>
+                      <td>${machine.IPAddress}</td>
+                      <td>${machine.Os} ${machine.OsVersion}</td>
+                      <td>${machine.LastCheckin}</td>
+                      <td>
+                        <button onclick="deleteMachine(${machine.ID})" class="delete-btn">
+                          <i class="fas fa-trash"></i> Delete
+                        </button>
+                      </td>
+                    `;
+                    tbody.appendChild(tr);
+                  });
+                  table.appendChild(tbody);
+
+                  machinesList.appendChild(table);
+                })
+                .catch(error => {
+                  console.error('Error fetching machines:', error);
+                  document.getElementById('machines-list').innerHTML =
+                    '<p>Error loading machines. Please try again.</p>';
+                });
+            });
+
+            // Function to delete a machine
+            function deleteMachine(machineId) {
+              if (confirm('Are you sure you want to delete this machine?')) {
+                fetch(`/admin/delete_machine/${machineId}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  }
+                })
+                .then(response => {
+                  if (response.ok) {
+                    // Remove the machine from the DOM
+                    document.getElementById(`machine-${machineId}`).remove();
+                  } else {
+                    response.json().then(data => {
+                      alert(`Error: ${data.error || 'Failed to delete'}`);
+                    });
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                  alert('An error occurred while trying to delete the machine.');
+                });
+              }
+            }
+          </script>
         </div>
       </div>
 
@@ -104,76 +178,11 @@
             <label class="account-info-label" for="new_password">New Password:</label>
             <input type="password" name="new_password" id="new_password" placeholder="Enter new password">
           </div>
+          <!-- Add additional fields if needed -->
           <button type="submit" id="update-acct-btn">Update Account</button>
         </form>
       </div>
     </div>
   </div>
-
-  <script>
-    // Fetch machines when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch('/displayagents')
-        .then(response => response.json())
-        .then(machines => {
-          const tableBody = document.getElementById('machines-body');
-          tableBody.innerHTML = ''; // Clear any existing content
-
-          if (machines.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5">No machines found.</td></tr>';
-            return;
-          }
-
-          // Add each machine to the table
-          machines.forEach(machine => {
-            const tr = document.createElement('tr');
-            tr.id = `machine-${machine.ID}`;
-            tr.innerHTML = `
-              <td>${machine.ID}</td>
-              <td>${machine.IPAddress}</td>
-              <td>${machine.Os} ${machine.OsVersion || ''}</td>
-              <td>${machine.LastCheckin}</td>
-              <td>
-                <button onclick="deleteMachine(${machine.ID})" class="delete-btn">
-                  <i class="fas fa-trash"></i> Delete
-                </button>
-              </td>
-            `;
-            tableBody.appendChild(tr);
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching machines:', error);
-          document.getElementById('machines-body').innerHTML =
-            '<tr><td colspan="5">Error loading machines. Please try again.</td></tr>';
-        });
-    });
-
-    // Function to delete a machine
-    function deleteMachine(machineId) {
-      if (confirm('Are you sure you want to delete this machine?')) {
-        fetch(`/admin/delete_machine/${machineId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        })
-        .then(response => {
-          if (response.ok) {
-            // Remove the machine from the DOM
-            document.getElementById(`machine-${machineId}`).remove();
-          } else {
-            response.json().then(data => {
-              alert(`Error: ${data.error || 'Failed to delete'}`);
-            });
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          alert('An error occurred while trying to delete the machine.');
-        });
-      }
-    }
-  </script>
 </body>
 </html>
