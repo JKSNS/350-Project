@@ -1,140 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF‑8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>C2 Dashboard</title>
-  <link rel="stylesheet" href="../static/css/styles.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Available Machines</title>
+  <link rel="stylesheet" href="../static/css/styles.css" />
 </head>
 <body>
   <div class="page-container">
+    <!-- ───────── header bar ───────── -->
     <div class="head-bar">
-      <h1 id="head-bar-header">Available Machines (Tier {{ tier_id }})</h1>
+      <h1 id="head-bar-header">
+        Available Machines (Tier {{ tier_id }})
+      </h1>
+
       <div class="head-bar-buttons">
-        {% if user and user.is_admin %}
-        <button type="button" id="admin-button" onclick="window.location.href='{{ url_for('admin_dashboard') }}';">Admin</button>
-        {% endif %}
+        <button
+          type="button"
+          id="admin-button"
+          class="btn btn-blue"
+          onclick="window.location.href='/admin';">
+          Admin
+        </button>
+
+        <button
+          type="button"
+          id="tasks-button"
+          class="btn btn-green"
+          onclick="window.location.href='/tasks';">
+          My Tasks
+        </button>
+
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-          <button type="submit" id="sign-out-button" class="btn">Sign Out</button>
+          <button type="submit" id="sign-out-button" class="btn btn-red">
+            Sign Out
+          </button>
         </form>
       </div>
     </div>
 
-    <div class="machines-container">
-      <h2 class="section-header">Active Machines</h2>
-      <div class="table-responsive">
-        <table class="machines-table">
-          <thead>
-            <tr>
-              <th>MachineID</th>
-              <th>IP</th>
-              <th>OS</th>
-              <th>Version</th>
-              <th>Check In</th>
-              <th>Cores</th>
-              <th>RAM (GB)</th>
-              <th>Tasks</th>
-            </tr>
-          </thead>
-          <tbody id="active-machines-body">
-            <!-- This will be populated by JavaScript -->
-          </tbody>
-        </table>
-      </div>
+    <!-- ───────── active machines ───────── -->
+    <div class="machine-table">
+      <h2 id="active-machines">Active Machines</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>MachineID</th>
+            <th>IP</th>
+            <th>OS</th>
+            <th>Version</th>
+            <th>Check In</th>
+            <th>Cores</th>
+            <th>RAM (GB)</th>
+            <th>Tasks</th>
+          </tr>
+        </thead>
+        <tbody id="activeMachinesBody"></tbody>
+      </table>
+    </div>
 
-      <h2 class="section-header">Inactive Machines</h2>
-      <div class="table-responsive">
-        <table class="machines-table">
-          <thead>
-            <tr>
-              <th>MachineID</th>
-              <th>IP</th>
-              <th>OS</th>
-              <th>Version</th>
-              <th>Check In</th>
-              <th>Cores</th>
-              <th>RAM (GB)</th>
-              <th>Tasks</th>
-            </tr>
-          </thead>
-          <tbody id="inactive-machines-body">
-            <!-- This will be populated by JavaScript -->
-          </tbody>
-        </table>
-      </div>
+    <!-- ───────── inactive machines ───────── -->
+    <div class="machine-table">
+      <h2 id="inactive-machines">Inactive Machines</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>IP</th>
+            <th>OS</th>
+            <th>Version</th>
+            <th>Check In</th>
+            <th>Cores</th>
+            <th>RAM (GB)</th>
+            <th>Tasks</th>
+          </tr>
+        </thead>
+        <tbody id="inactiveMachinesBody"></tbody>
+      </table>
     </div>
   </div>
 
+  <!-- ───────── JS: fetch /displayagents ───────── -->
   <script>
-    // Fetch machines when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      fetch('/displayagents')
-        .then(response => response.json())
-        .then(machines => {
-          const activeTableBody = document.getElementById('active-machines-body');
-          const inactiveTableBody = document.getElementById('inactive-machines-body');
-          activeTableBody.innerHTML = ''; // Clear existing content
-          inactiveTableBody.innerHTML = ''; // Clear existing content
-
-          if (machines.length === 0) {
-            activeTableBody.innerHTML = '<tr><td colspan="8">No machines found.</td></tr>';
-            inactiveTableBody.innerHTML = '<tr><td colspan="8">No machines found.</td></tr>';
-            return;
-          }
-
-          // Current time to determine active/inactive (machines older than 24 hours are inactive)
-          const now = new Date();
-          const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-
-          // Sort and display machines
-          machines.forEach(machine => {
-            const lastCheckin = new Date(machine.LastCheckin);
-            const isActive = lastCheckin > oneDayAgo;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${machine.ID}</td>
-              <td>${machine.IPAddress}</td>
-              <td>${machine.Os}</td>
-              <td>${machine.OsVersion || ''}</td>
-              <td>${formatDate(machine.LastCheckin)}</td>
-              <td>${machine.Cores}</td>
-              <td>${machine.Ram}</td>
-              <td>${formatTasks(machine.Tasks)}</td>
-            `;
-
-            if (isActive) {
-              activeTableBody.appendChild(tr);
-            } else {
-              inactiveTableBody.appendChild(tr);
-            }
-          });
-        })
-        .catch(error => {
-          console.error('Error fetching machines:', error);
-          document.getElementById('active-machines-body').innerHTML =
-            '<tr><td colspan="8">Error loading machines. Please try again.</td></tr>';
-          document.getElementById('inactive-machines-body').innerHTML =
-            '<tr><td colspan="8">Error loading machines. Please try again.</td></tr>';
-        });
-    });
-
-    // Helper function to format date
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString() + ', ' +
-             date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  /* ───── helper ───── */
+  function toEpochSeconds(value) {
+    if (typeof value === "number") return value;             // already epoch
+    if (typeof value === "string") {
+      const ms = Date.parse(value);                          // ISO / RFC‑2822
+      return isNaN(ms) ? null : ms / 1000;                   // → seconds
     }
+    return null;
+  }
 
-    // Helper function to format tasks
-    function formatTasks(tasks) {
-      if (!tasks || tasks.length === 0) {
-        return 'No tasks';
-      }
+  function formatTimestamp(ts) {
+    return new Date(ts * 1000).toLocaleString();
+  }
 
-      return tasks.map(task => task.Description).join('<br>');
+  /* active = anything within 30 days */
+  const ACTIVE_WINDOW_SEC = 30 * 24 * 60 * 60;   // 2 592 000 s
+
+  async function loadAgents() {
+    try {
+      const res    = await fetch("/displayagents");
+      const agents = await res.json();
+
+      const activeBody   = document.getElementById("activeMachinesBody");
+      const inactiveBody = document.getElementById("inactiveMachinesBody");
+      activeBody.innerHTML   = "";
+      inactiveBody.innerHTML = "";
+
+      const nowSec = Date.now() / 1000;
+
+      agents.forEach(agent => {
+        const epoch = toEpochSeconds(agent.LastCheckin);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${agent.ID}</td>
+          <td>${agent.IPAddress}</td>
+          <td>${agent.Os}</td>
+          <td>${agent.OsVersion}</td>
+          <td>${epoch ? formatTimestamp(epoch) : (agent.LastCheckin || "—")}</td>
+          <td>${agent.Cores ?? "—"}</td>
+          <td>${agent.Ram   ?? "—"}</td>
+          <td>${
+            agent.Tasks.length
+              ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join("")
+              : "No tasks"
+          }</td>
+        `;
+
+        const isActive = epoch !== null && nowSec - epoch < ACTIVE_WINDOW_SEC;
+        (isActive ? activeBody : inactiveBody).appendChild(row);
+      });
+    } catch (err) {
+      console.error("Error loading agents:", err);
     }
-  </script>
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadAgents();
+    setInterval(loadAgents, 30000);   // refresh every 30 s
+  });
+</script>
 </body>
 </html>
