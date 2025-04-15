@@ -8,7 +8,7 @@ import uuid
 import json
 from datetime import datetime
 import mysql.connector
-from flask import Flask, render_template, request, jsonify, Response, redirect, url_for, session
+from flask import Flask, render_template, request, jsonify, Response, redirect, url_for, session, flash
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -324,6 +324,47 @@ def admin_dashboard():
     if not user or not user['is_admin']:
         return "Forbidden: You must be an admin", 403
     return render_template('admin.html')
+
+
+@app.route('/admin/delete_machine/<int:machine_id>', methods=['POST', 'DELETE'])
+def delete_machine(machine_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    admin_user = get_user_by_username(session['username'])
+    if not admin_user or not admin_user['is_admin']:
+        return "Forbidden: You must be an admin", 403
+
+    username = session['username']
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Check if machine exists and belongs to the current user
+        cursor.execute("SELECT * FROM MACHINE WHERE MachineID = %s AND Username = %s",
+                       (machine_id, username))
+        machine = cursor.fetchone()
+        if not machine:
+            return jsonify({'error': 'Machine not found or not authorized to delete'}), 404
+
+        # Delete machine
+        cursor.execute("DELETE FROM MACHINE WHERE MachineID = %s AND Username = %s",
+                       (machine_id, username))
+        conn.commit()
+
+        # Respond based on request type
+        if request.method == 'DELETE':
+            return jsonify({'message': 'Machine deleted successfully'}), 200
+        else:  # POST request
+            flash('Machine deleted successfully', 'success')
+            return redirect(url_for('admin_dashboard'))
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
 
 
 @app.route('/admin/add_machine', methods=['POST'])
