@@ -19,7 +19,7 @@
           type="button"
           id="admin-button"
           class="btn btn-blue"
-          onclick="window.location.href='/admin';">
+          onclick="window.location.href='{{ url_for('admin_dashboard') }}';">
           Admin
         </button>
 
@@ -27,8 +27,17 @@
           type="button"
           id="tasks-button"
           class="btn btn-green"
-          onclick="window.location.href='/tasks';">
+          onclick="window.location.href='{{ url_for('tasks_page') }}';">
           My Tasks
+        </button>
+
+        <!-- New Profile button -->
+        <button
+          type="button"
+          id="profile-button"
+          class="btn btn-secondary"
+          onclick="window.location.href='{{ url_for('profile') }}';">
+          Profile
         </button>
 
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
