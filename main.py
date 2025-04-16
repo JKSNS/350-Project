@@ -178,6 +178,51 @@ def update_task_status(task_id, status):
     conn.commit()
     conn.close()
 
+@app.route('/tasks/update/<int:task_id>', methods=['POST'])
+def update_task(task_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    # Optionally require admin or certain privileges
+    user = get_user_by_username(session['username'])
+
+    machine_id   = request.form.get('machine_id')
+    command      = request.form.get('command')
+    scheduled_at = request.form.get('scheduled_at')  # e.g. '2025-02-28T10:15'
+
+    # Update your Tasks table
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    sql = """
+        UPDATE TASKS
+           SET MachineID   = %s,
+               TaskType    = %s,
+               ScheduledAt = %s
+         WHERE TaskID      = %s
+    """
+    cursor.execute(sql, (machine_id, command, scheduled_at, task_id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('tasks_page'))
+
+
+@app.route('/tasks/delete/<int:task_id>', methods=['POST'])
+def delete_task(task_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    # Optionally require admin or certain privileges
+    user = get_user_by_username(session['username'])
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    sql = "DELETE FROM TASKS WHERE TaskID = %s"
+    cursor.execute(sql, (task_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('tasks_page'))
+
+
 # ------------------------ END DATABASE FUNCTIONS ------------------------ #
 
 
@@ -455,12 +500,17 @@ def tasks_page():
     if 'username' not in session:
         return redirect(url_for('login'))
     user = get_user_by_username(session['username'])
-    # If your DB_USER has TierID, pass it in; otherwise omit
+
+    # For instance, get your tasks from the DB
+    tasks = get_all_tasks_from_db()  # Implement a function to fetch tasks
+
     return render_template(
         'tasks.html',
         username=user['Username'],
         tier_id=user['TierID'],
+        tasks=tasks
     )
+
 
 @app.route('/tasks/add_task', methods=['POST'])
 def add_new_task():
