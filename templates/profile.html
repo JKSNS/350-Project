@@ -4,7 +4,8 @@
   <meta charset="UTF‑8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile</title>
-  <link rel="stylesheet" href="../static/css/styles.css" />
+  <!-- Version query string added to force CSS reload if needed -->
+  <link rel="stylesheet" href="../static/css/styles.css?v=1.0" />
 </head>
 <body>
   <div class="page-container">
@@ -12,20 +13,25 @@
     <div class="head-bar">
       <h1 id="head-bar-header">My Profile</h1>
       <div class="head-bar-buttons">
+        <!-- Re-use the blue styling from #admin-button -->
         <button 
           type="button" 
-          class="btn btn-blue" 
+          id="admin-button" 
           onclick="window.location.href='{{ url_for('index') }}';">
           Home
         </button>
+        <!-- Re-use the green styling from #login-button -->
         <button 
           type="button" 
-          class="btn btn-green" 
+          id="login-button" 
           onclick="window.location.href='{{ url_for('tasks_page') }}';">
           My Tasks
         </button>
+        <!-- Re-use the red styling from #sign-out-button -->
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-          <button type="submit" class="btn btn-red">
+          <button 
+            type="submit" 
+            id="sign-out-button">
             Sign Out
           </button>
         </form>
@@ -80,7 +86,10 @@
           />
         </div>
 
-        <button type="submit" class="btn btn-green">Update Profile</button>
+        <!-- You may use the default .btn style or override inline -->
+        <button type="submit" class="btn" style="background-color: #28a745; color: white;">
+          Update Profile
+        </button>
       </form>
     </div>
   </div>
