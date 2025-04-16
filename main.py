@@ -539,18 +539,20 @@ def add_new_task():
     command = request.form.get('command')
     scheduled_at = request.form.get('scheduled_at')
     
-    # Insert into TASKS using the correct column "MachineID"
+    # Insert into TASKS including the ScheduledAt column
     conn = get_db_connection()
     cursor = conn.cursor()
     insert_sql = """
-        INSERT INTO TASKS (TaskType, MachineID)
-        VALUES (%s, %s)
+        INSERT INTO TASKS (TaskType, MachineID, ScheduledAt)
+        VALUES (%s, %s, %s)
     """
-    cursor.execute(insert_sql, (command, machine_id))
+    cursor.execute(insert_sql, (command, machine_id, scheduled_at))
     conn.commit()
     conn.close()
     
     return redirect(url_for('tasks_page'))
+
+
 
 
 
