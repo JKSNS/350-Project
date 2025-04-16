@@ -570,56 +570,73 @@ def profile():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    # Fetch the current user record
+    # Fetch the current user record (keys will match your DB schema)
     user = get_user_by_username(session['username'])
+    if not user:
+        # If no matching user is found, redirect to logout
+        return redirect(url_for('logout'))
+
     message = None
 
     if request.method == 'POST':
-        # Get values from the form. If a field is empty, fall back to the current user value.
-        new_username = request.form.get('username').strip() or user['Username']
-        new_email = request.form.get('email').strip() or user['Email']
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
+        # Get form values; if a field is blank, use the existing value.
+        new_username = request.form.get('username', '').strip() or user['Username']
+        new_email = request.form.get('email', '').strip() or user['Email']
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
 
-        # 1) If a new password is supplied, ensure it matches the confirmation.
+        # 1) If the user entered a new password, ensure it matches confirmation
         if new_password:
             if new_password != confirm_password:
                 message = "Passwords do not match."
                 return render_template('profile.html', user=user, message=message)
 
-        # 2) If the username has changed, ensure it's not already taken.
+        # 2) If the username has changed, check if it's already taken by another user
         if new_username != user['Username']:
-            if get_user_by_username(new_username):
-                message = "Username already taken."
+            existing_user = get_user_by_username(new_username)
+            if existing_user:
+                message = f"Username '{new_username}' is already in use."
                 return render_template('profile.html', user=user, message=message)
 
-        # 3) Prepare updated values. Update password only if a new one was provided.
-        password_hash = user['Password']
+        # 3) Retrieve the old password hash from the user record.
+        # Since your column is named "PASSWORD" in the DB, use that key.
+        password_hash = user.get('PASSWORD')
+        if password_hash is None:
+            # DEBUG: Log the full user record if 'PASSWORD' is missing.
+            print("DEBUG: 'PASSWORD' key missing from user dictionary:", user)
+            message = "Error: Could not retrieve current password from your record."
+            return render_template('profile.html', user=user, message=message)
+
+        # 4) If a new password was provided, hash it and update the password hash.
         if new_password:
             password_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
 
+        # 5) Update the user record in the database.
         try:
-            # 4) Update DB_USER with the new values.
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
                 UPDATE DB_USER
                    SET Username = %s,
                        Email = %s,
-                       Password = %s
+                       PASSWORD = %s
                  WHERE Username = %s
             """, (new_username, new_email, password_hash, user['Username']))
             conn.commit()
             conn.close()
 
-            # 5) If the username changed, update the session.
-            session['username'] = new_username
+            # If the username was changed, update it in the session.
+            if new_username != user['Username']:
+                session['username'] = new_username
+
+            # Reload updated user data.
             user = get_user_by_username(new_username)
             message = "Profile updated successfully."
         except Exception as e:
-            message = f"Error updating profile: {str(e)}"
+            message = f"Error updating profile: {e}"
 
     return render_template('profile.html', user=user, message=message)
+
 
 
 
