@@ -31,11 +31,11 @@
           My Tasks
         </button>
 
-        <!-- New Profile button -->
+        <!-- Updated Profile button with yellow color -->
         <button
           type="button"
           id="profile-button"
-          class="btn btn-secondary"
+          class="btn btn-yellow"
           onclick="window.location.href='{{ url_for('profile') }}';">
           Profile
         </button>
@@ -91,66 +91,66 @@
 
   <!-- ───────── JS: fetch /displayagents ───────── -->
   <script>
-  /* ───── helper ───── */
-  function toEpochSeconds(value) {
-    if (typeof value === "number") return value;             // already epoch
-    if (typeof value === "string") {
-      const ms = Date.parse(value);                          // ISO / RFC‑2822
-      return isNaN(ms) ? null : ms / 1000;                   // → seconds
+    /* ───── helper functions ───── */
+    function toEpochSeconds(value) {
+      if (typeof value === "number") return value;
+      if (typeof value === "string") {
+        const ms = Date.parse(value);
+        return isNaN(ms) ? null : ms / 1000;
+      }
+      return null;
     }
-    return null;
-  }
 
-  function formatTimestamp(ts) {
-    return new Date(ts * 1000).toLocaleString();
-  }
-
-  /* active = anything within 30 days */
-  const ACTIVE_WINDOW_SEC = 30 * 24 * 60 * 60;   // 2 592 000 s
-
-  async function loadAgents() {
-    try {
-      const res    = await fetch("/displayagents");
-      const agents = await res.json();
-
-      const activeBody   = document.getElementById("activeMachinesBody");
-      const inactiveBody = document.getElementById("inactiveMachinesBody");
-      activeBody.innerHTML   = "";
-      inactiveBody.innerHTML = "";
-
-      const nowSec = Date.now() / 1000;
-
-      agents.forEach(agent => {
-        const epoch = toEpochSeconds(agent.LastCheckin);
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${agent.ID}</td>
-          <td>${agent.IPAddress}</td>
-          <td>${agent.Os}</td>
-          <td>${agent.OsVersion}</td>
-          <td>${epoch ? formatTimestamp(epoch) : (agent.LastCheckin || "—")}</td>
-          <td>${agent.Cores ?? "—"}</td>
-          <td>${agent.Ram   ?? "—"}</td>
-          <td>${
-            agent.Tasks.length
-              ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join("")
-              : "No tasks"
-          }</td>
-        `;
-
-        const isActive = epoch !== null && nowSec - epoch < ACTIVE_WINDOW_SEC;
-        (isActive ? activeBody : inactiveBody).appendChild(row);
-      });
-    } catch (err) {
-      console.error("Error loading agents:", err);
+    function formatTimestamp(ts) {
+      return new Date(ts * 1000).toLocaleString();
     }
-  }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    loadAgents();
-    setInterval(loadAgents, 30000);   // refresh every 30 s
-  });
-</script>
+    /* active = anything within 30 days */
+    const ACTIVE_WINDOW_SEC = 30 * 24 * 60 * 60;   // 2,592,000 seconds
+
+    async function loadAgents() {
+      try {
+        const res    = await fetch("/displayagents");
+        const agents = await res.json();
+
+        const activeBody   = document.getElementById("activeMachinesBody");
+        const inactiveBody = document.getElementById("inactiveMachinesBody");
+        activeBody.innerHTML   = "";
+        inactiveBody.innerHTML = "";
+
+        const nowSec = Date.now() / 1000;
+
+        agents.forEach(agent => {
+          const epoch = toEpochSeconds(agent.LastCheckin);
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${agent.ID}</td>
+            <td>${agent.IPAddress}</td>
+            <td>${agent.Os}</td>
+            <td>${agent.OsVersion}</td>
+            <td>${epoch ? formatTimestamp(epoch) : (agent.LastCheckin || "—")}</td>
+            <td>${agent.Cores ?? "—"}</td>
+            <td>${agent.Ram   ?? "—"}</td>
+            <td>${
+              agent.Tasks.length
+                ? agent.Tasks.map(t => `<div>${t.Description}</div>`).join("")
+                : "No tasks"
+            }</td>
+          `;
+
+          const isActive = epoch !== null && nowSec - epoch < ACTIVE_WINDOW_SEC;
+          (isActive ? activeBody : inactiveBody).appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error loading agents:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadAgents();
+      setInterval(loadAgents, 30000);   // refresh every 30 seconds
+    });
+  </script>
 </body>
 </html>
