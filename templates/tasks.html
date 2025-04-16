@@ -82,9 +82,12 @@
               </select>
             </td>
             <td>
-              <input type="datetime-local" name="scheduled_at"
-                     value="{% if task.scheduled_at %}{{ task.scheduled_at|strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
-                     required />
+              <input
+                type="datetime-local"
+                name="scheduled_at"
+                value="{{ task.scheduled_at.strftime('%Y-%m-%dT%H:%M') if task.scheduled_at else '' }}"
+                required
+              />
             </td>
             <td><button type="submit">Update</button></td>
           </form>
