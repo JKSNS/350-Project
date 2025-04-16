@@ -182,14 +182,11 @@ def update_task_status(task_id, status):
 def update_task(task_id):
     if 'username' not in session:
         return redirect(url_for('login'))
-    # Optionally require admin or certain privileges
-    user = get_user_by_username(session['username'])
-
+    # Optionally require admin or check privileges
     machine_id   = request.form.get('machine_id')
     command      = request.form.get('command')
-    scheduled_at = request.form.get('scheduled_at')  # e.g. '2025-02-28T10:15'
+    scheduled_at = request.form.get('scheduled_at')  # e.g., '2025-02-28T10:15'
 
-    # Update your Tasks table
     conn = get_db_connection()
     cursor = conn.cursor()
     sql = """
@@ -206,13 +203,11 @@ def update_task(task_id):
     return redirect(url_for('tasks_page'))
 
 
+
 @app.route('/tasks/delete/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
     if 'username' not in session:
         return redirect(url_for('login'))
-    # Optionally require admin or certain privileges
-    user = get_user_by_username(session['username'])
-
     conn = get_db_connection()
     cursor = conn.cursor()
     sql = "DELETE FROM TASKS WHERE TaskID = %s"
@@ -221,6 +216,7 @@ def delete_task(task_id):
     conn.close()
 
     return redirect(url_for('tasks_page'))
+
 
 
 # ------------------------ END DATABASE FUNCTIONS ------------------------ #
@@ -495,14 +491,34 @@ def update_account():
     return redirect(url_for('admin_dashboard'))
 
 
+def get_all_tasks_from_db():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+         SELECT TaskID, MachineID, TaskType, ScheduledAt
+           FROM TASKS
+    """)
+    tasks_data = cursor.fetchall()
+    tasks = []
+    for task in tasks_data:
+         tasks.append({
+             'id': task['TaskID'],              # Unique ID for each task (used for update/delete)
+             'machine_id': task['MachineID'],     # The machine identifier
+             'command': task['TaskType'],         # The command (or task type)
+             'scheduled_at': task['ScheduledAt']  # The scheduled date/time; ensure it’s stored as datetime (or format it in your template)
+         })
+    conn.close()
+    return tasks
+
+
 @app.route('/tasks')
 def tasks_page():
     if 'username' not in session:
         return redirect(url_for('login'))
     user = get_user_by_username(session['username'])
 
-    # For instance, get your tasks from the DB
-    tasks = get_all_tasks_from_db()  # Implement a function to fetch tasks
+    # Use the new function to fetch tasks from the DB
+    tasks = get_all_tasks_from_db()
 
     return render_template(
         'tasks.html',
@@ -510,6 +526,7 @@ def tasks_page():
         tier_id=user['TierID'],
         tasks=tasks
     )
+
 
 
 @app.route('/tasks/add_task', methods=['POST'])
