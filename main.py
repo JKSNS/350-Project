@@ -178,29 +178,7 @@ def update_task_status(task_id, status):
     conn.commit()
     conn.close()
 
-@app.route('/tasks/update/<int:task_id>', methods=['POST'])
-def update_task(task_id):
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    # Optionally require admin or check privileges
-    machine_id   = request.form.get('machine_id')
-    command      = request.form.get('command')
-    last_checkin = request.form.get('last_checkin')  # updated field name
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    sql = """
-        UPDATE TASKS
-           SET MachineID   = %s,
-               TaskType    = %s,
-               LastCheckIn = %s
-         WHERE TaskID      = %s
-    """
-    cursor.execute(sql, (machine_id, command, last_checkin, task_id))
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for('tasks_page'))
 
 
 
@@ -491,26 +469,6 @@ def update_account():
     return redirect(url_for('admin_dashboard'))
 
 
-def get_all_tasks_from_db():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-         SELECT TaskID, MachineID, TaskType, LastCheckIn
-           FROM TASKS
-    """)
-    tasks_data = cursor.fetchall()
-    tasks = []
-    for task in tasks_data:
-         tasks.append({
-             'id': task['TaskID'],              # Unique ID for each task (used for update/delete)
-             'machine_id': task['MachineID'],     # The machine identifier
-             'command': task['TaskType'],         # The command (or task type)
-             'last_checkin': task['LastCheckIn']  # The LastCheckIn date/time
-         })
-    conn.close()
-    return tasks
-
-
 @app.route('/tasks')
 def tasks_page():
     if 'username' not in session:
@@ -526,33 +484,6 @@ def tasks_page():
         tier_id=user['TierID'],
         tasks=tasks
     )
-
-
-
-@app.route('/tasks/add_task', methods=['POST'])
-def add_new_task():
-    if 'username' not in session:
-        return redirect(url_for('login'))
-    
-    # Retrieve form data from tasks.html
-    machine_id   = request.form.get('machine_id')
-    command      = request.form.get('command')
-    last_checkin = request.form.get('last_checkin')  # updated field name
-    
-    # Insert into TASKS including the LastCheckIn column
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    insert_sql = """
-        INSERT INTO TASKS (TaskType, MachineID, LastCheckIn)
-        VALUES (%s, %s, %s)
-    """
-    cursor.execute(insert_sql, (command, machine_id, last_checkin))
-    conn.commit()
-    conn.close()
-    
-    return redirect(url_for('tasks_page'))
-
-
 
 
 
@@ -705,6 +636,78 @@ def profile():
             message = f"Error updating profile: {e}"
 
     return render_template('profile.html', user=user, message=message)
+
+
+
+
+
+
+def get_all_tasks_from_db():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+         SELECT TaskID, MachineID, TaskType, LastCheckIn
+           FROM TASKS
+    """)
+    tasks_data = cursor.fetchall()
+    tasks = []
+    for task in tasks_data:
+         tasks.append({
+             'id': task['TaskID'],              # Unique ID for each task (used for update/delete)
+             'machine_id': task['MachineID'],     # The machine identifier
+             'command': task['TaskType'],         # The command (or task type)
+             'last_checkin': task['LastCheckIn']  # The LastCheckIn date/time
+         })
+    conn.close()
+    return tasks
+
+@app.route('/tasks/update/<int:task_id>', methods=['POST'])
+def update_task(task_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    # Retrieve form data using the updated field name 'last_checkin'
+    machine_id   = request.form.get('machine_id')
+    command      = request.form.get('command')
+    last_checkin = request.form.get('last_checkin')  # use LastCheckIn instead of ScheduledAt
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    sql = """
+        UPDATE TASKS
+           SET MachineID   = %s,
+               TaskType    = %s,
+               LastCheckIn = %s
+         WHERE TaskID      = %s
+    """
+    cursor.execute(sql, (machine_id, command, last_checkin, task_id))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('tasks_page'))
+
+@app.route('/tasks/add_task', methods=['POST'])
+def add_new_task():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    
+    # Retrieve form data from tasks.html using the updated field name 'last_checkin'
+    machine_id   = request.form.get('machine_id')
+    command      = request.form.get('command')
+    last_checkin = request.form.get('last_checkin')  # use LastCheckIn instead of ScheduledAt
+    
+    # Insert into TASKS including the LastCheckIn column
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    insert_sql = """
+        INSERT INTO TASKS (TaskType, MachineID, LastCheckIn)
+        VALUES (%s, %s, %s)
+    """
+    cursor.execute(insert_sql, (command, machine_id, last_checkin))
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('tasks_page'))
+
 
 
 
