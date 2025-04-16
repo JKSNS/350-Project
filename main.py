@@ -323,7 +323,13 @@ def admin_dashboard():
     user = get_user_by_username(session['username'])
     if not user or not user['is_admin']:
         return "Forbidden: You must be an admin", 403
-    return render_template('admin.html')
+
+    # 1) FETCH all machines from DB so we can list them in the template
+    machines = get_all_agents()  # or a separate function if you prefer
+
+    # 2) Pass them into the admin.html
+    return render_template('admin.html', machines=machines)
+
 
 
 @app.route('/admin/add_machine', methods=['POST'])
@@ -481,6 +487,78 @@ def add_new_task():
 
 
 
+
+@app.route('/admin/update_machine/<int:machine_id>', methods=['POST'])
+def update_machine(machine_id):
+    # Require admin
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    admin_user = get_user_by_username(session['username'])
+    if not admin_user or not admin_user['is_admin']:
+        return "Forbidden: You must be an admin", 403
+
+    # Gather form data
+    ip_address = request.form.get('ip_address')
+    last_checkin = request.form.get('last_checkin')  # "2025-02-28T10:15"
+    operating_system = request.form.get('operating_system')
+    version = request.form.get('version')
+    cores = int(request.form.get('cores', 0))
+    ram = int(request.form.get('ram', 0))
+    tier_id = int(request.form.get('tier_id', 0))
+    username = request.form.get('username')
+
+    # Update DB
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    sql = """
+        UPDATE MACHINE
+           SET IPAddress       = %s,
+               LastCheckIn     = %s,
+               OperatingSystem = %s,
+               Version         = %s,
+               Cores           = %s,
+               Ram             = %s,
+               TierID          = %s,
+               Username        = %s
+         WHERE MachineID       = %s
+    """
+    cursor.execute(sql, (
+        ip_address,
+        last_checkin,
+        operating_system,
+        version,
+        cores,
+        ram,
+        tier_id,
+        username,
+        machine_id
+    ))
+    conn.commit()
+    conn.close()
+
+    # Redirect back to admin page or wherever you want
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/delete_machine/<int:machine_id>', methods=['POST'])
+def delete_machine(machine_id):
+    # Require admin
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    admin_user = get_user_by_username(session['username'])
+    if not admin_user or not admin_user['is_admin']:
+        return "Forbidden: You must be an admin", 403
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Delete
+    sql = "DELETE FROM MACHINE WHERE MachineID = %s"
+    cursor.execute(sql, (machine_id,))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('admin_dashboard'))
 
 
 
