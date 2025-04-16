@@ -339,3 +339,12 @@ td {
 #del-acct:hover {
     background-color: #bc2f3d;
 }
+
+.btn-yellow {
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
