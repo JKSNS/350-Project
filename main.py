@@ -562,6 +562,64 @@ def delete_machine(machine_id):
 
 
 
+
+
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # fetch current user record
+    user = get_user_by_username(session['username'])
+    message = None
+
+    if request.method == 'POST':
+        new_username    = request.form.get('username').strip()
+        new_email       = request.form.get('email').strip()
+        new_password    = request.form.get('new_password')
+        confirm_password= request.form.get('confirm_password')
+
+        # 1) If they supplied a new password, ensure it matches confirmation
+        if new_password:
+            if new_password != confirm_password:
+                message = "Passwords do not match."
+                return render_template('profile.html', user=user, message=message)
+
+        # 2) If username changed, check availability
+        if new_username != user['Username']:
+            if get_user_by_username(new_username):
+                message = "Username already taken."
+                return render_template('profile.html', user=user, message=message)
+
+        # 3) Prepare updated values
+        password_hash = user['Password']
+        if new_password:
+            password_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
+
+        # 4) Update DB_USER
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE DB_USER
+               SET Username = %s,
+                   Email    = %s,
+                   Password = %s
+             WHERE Username = %s
+        """, (new_username, new_email, password_hash, user['Username']))
+        conn.commit()
+        conn.close()
+
+        # 5) Update session and reload user
+        session['username'] = new_username
+        user = get_user_by_username(new_username)
+        message = "Profile updated successfully."
+
+    return render_template('profile.html', user=user, message=message)
+
+
+
+
 # ------------------------ END ROUTES ------------------------ #
 
 
