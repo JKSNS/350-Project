@@ -11,9 +11,9 @@
     <div class="head-bar">
       <h1 id="head-bar-header">Admin Dashboard</h1>
       <div class="head-bar-buttons">
-        <!-- Home button to return to the index page -->
+        <!-- Home button -->
         <button type="button" id="home-button" onclick="window.location.href='{{ url_for('index') }}';">Back</button>
-        <!-- Sign Out button using a POST form -->
+        <!-- Sign Out -->
         <form action="{{ url_for('logout') }}" method="POST" style="display:inline;">
           <button type="submit" id="sign-out-button" class="btn">Sign Out</button>
         </form>
@@ -21,7 +21,7 @@
     </div>
 
     <div id="admin-sections">
-      <!-- Add New Machine Section -->
+      <!-- Add New Machine Section (left) -->
       <div class="admin-container">
         <h2>Add New Machine</h2>
         <form action="{{ url_for('add_machine') }}" method="POST">
@@ -33,6 +33,7 @@
             <label class="machine-input-head" for="last_checkin">Last CheckIn:</label>
             <input type="datetime-local" name="last_checkin" id="last_checkin" required>
             <script>
+              // Force the user to pick a date/time >= "now"
               const now = new Date();
               const minDate = now.toISOString().slice(0, 16);
               document.getElementById('last_checkin').setAttribute('min', minDate);
@@ -66,45 +67,107 @@
         </form>
       </div>
 
-      <!-- Manage Machines Section (with Update capability) -->
+      <!-- Manage Machines Section (right) -->
       <div class="admin-container">
         <h2>Manage Machines</h2>
         <table>
           <thead>
             <tr>
-              <th>ID</th>
               <th>IP Address</th>
               <th>Last CheckIn</th>
               <th>Operating System</th>
               <th>Version</th>
               <th>Cores</th>
               <th>RAM (GB)</th>
+              <th>Tier ID</th>
+              <th>Username</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for machine in machines %}
-            <tr>
-              <!-- Use either read-only cells or turn them into form fields. Below is an example
-                   of a button that leads to an update form. Alternatively, you can inline
-                   the update form if you want direct, in-table edits. -->
-              <td>{{ machine.id }}</td>
-              <td>{{ machine.ip_address }}</td>
-              <td>{{ machine.last_checkin }}</td>
-              <td>{{ machine.operating_system }}</td>
-              <td>{{ machine.version }}</td>
-              <td>{{ machine.cores }}</td>
-              <td>{{ machine.ram }}</td>
-              <td>
-                <!-- Example: 'Update' navigates to a separate update form route -->
-                <form action="{{ url_for('update_machine_form', machine_id=machine.id) }}" method="GET" style="display:inline;">
+            <!-- Each row is a separate form for "update" -->
+            <form action="{{ url_for('update_machine', machine_id=machine.ID) }}" method="POST">
+              <tr>
+                <td>
+                  <input
+                    type="text"
+                    name="ip_address"
+                    value="{{ machine.IPAddress }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="datetime-local"
+                    name="last_checkin"
+                    value="{% if machine.LastCheckin %}{{ machine.LastCheckin|replace(' ', 'T') }}{% endif %}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="operating_system"
+                    value="{{ machine.Os }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="version"
+                    value="{{ machine.OsVersion }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    name="cores"
+                    value="{{ machine.Cores }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    name="ram"
+                    value="{{ machine.Ram }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    name="tier_id"
+                    value="{{ machine.TierID }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    name="username"
+                    value="{{ machine.Username }}"
+                    required
+                  />
+                </td>
+                <td>
+                  <!-- Update button (POSTs this row's data to /update_machine) -->
                   <button type="submit">Update</button>
-                </form>
-                <form action="{{ url_for('delete_machine', machine_id=machine.id) }}" method="POST" style="display:inline;">
-                  <button type="submit" class="delete-btn">Delete</button>
-                </form>
-              </td>
-            </tr>
+                  
+                  <!-- Delete button -->
+                  <form
+                    action="{{ url_for('delete_machine', machine_id=machine.ID) }}"
+                    method="POST"
+                    style="display:inline;"
+                  >
+                    <button type="submit" class="delete-btn">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            </form>
             {% endfor %}
           </tbody>
         </table>
