@@ -653,7 +653,7 @@ def get_all_tasks_from_db():
     tasks = []
     for task in tasks_data:
          tasks.append({
-             'id': task['TaskID'],              # Unique ID for each task (used for update/delete)
+             'id': task['TaskID'],              # Unique ID for each task (for update/delete)
              'machine_id': task['MachineID'],     # The machine identifier
              'command': task['TaskType'],         # The command (or task type)
              'last_checkin': task['LastCheckIn']  # The LastCheckIn date/time
@@ -665,10 +665,10 @@ def get_all_tasks_from_db():
 def update_task(task_id):
     if 'username' not in session:
         return redirect(url_for('login'))
-    # Retrieve form data using the updated field name 'last_checkin'
+    # Use the updated field name 'last_checkin'
     machine_id   = request.form.get('machine_id')
     command      = request.form.get('command')
-    last_checkin = request.form.get('last_checkin')  # use LastCheckIn instead of ScheduledAt
+    last_checkin = request.form.get('last_checkin')
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -690,10 +690,10 @@ def add_new_task():
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    # Retrieve form data from tasks.html using the updated field name 'last_checkin'
+    # Retrieve form data using the updated field name 'last_checkin'
     machine_id   = request.form.get('machine_id')
     command      = request.form.get('command')
-    last_checkin = request.form.get('last_checkin')  # use LastCheckIn instead of ScheduledAt
+    last_checkin = request.form.get('last_checkin')
     
     # Insert into TASKS including the LastCheckIn column
     conn = get_db_connection()
@@ -707,7 +707,6 @@ def add_new_task():
     conn.close()
     
     return redirect(url_for('tasks_page'))
-
 
 
 
