@@ -186,10 +186,10 @@ def update_task_status(task_id, status):
 def delete_task(task_id):
     if 'username' not in session:
         return redirect(url_for('login'))
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    sql = "DELETE FROM TASKS WHERE TaskID = %s"
-    cursor.execute(sql, (task_id,))
+    cursor.execute("DELETE FROM TASKS WHERE TaskID = %s", (task_id,))
     conn.commit()
     conn.close()
 
@@ -469,15 +469,12 @@ def update_account():
     return redirect(url_for('admin_dashboard'))
 
 
-@app.route('/tasks')
+@app.route('/tasks', methods=['GET'])
 def tasks_page():
     if 'username' not in session:
         return redirect(url_for('login'))
-    user = get_user_by_username(session['username'])
-
-    # Use the new function to fetch tasks from the DB
+    user  = get_user_by_username(session['username'])
     tasks = get_all_tasks_from_db()
-
     return render_template(
         'tasks.html',
         username=user['Username'],
@@ -646,66 +643,68 @@ def get_all_tasks_from_db():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-         SELECT TaskID, MachineID, TaskType, LastCheckIn
+         SELECT TaskID, MachineID, TaskType, ScheduledAt
            FROM TASKS
     """)
-    tasks_data = cursor.fetchall()
-    tasks = []
-    for task in tasks_data:
-         tasks.append({
-             'id': task['TaskID'],              # Unique ID for each task (for update/delete)
-             'machine_id': task['MachineID'],     # The machine identifier
-             'command': task['TaskType'],         # The command (or task type)
-             'last_checkin': task['LastCheckIn']  # The LastCheckIn date/time
-         })
+    rows = cursor.fetchall()
     conn.close()
+
+    tasks = []
+    for row in rows:
+        tasks.append({
+            'id':           row['TaskID'],
+            'machine_id':   row['MachineID'],
+            'command':      row['TaskType'],
+            'scheduled_at': row['ScheduledAt']
+        })
     return tasks
+
+
 
 @app.route('/tasks/update/<int:task_id>', methods=['POST'])
 def update_task(task_id):
     if 'username' not in session:
         return redirect(url_for('login'))
-    # Use the updated field name 'last_checkin'
-    machine_id   = request.form.get('machine_id')
-    command      = request.form.get('command')
-    last_checkin = request.form.get('last_checkin')
+
+    machine_id   = request.form['machine_id']
+    command      = request.form['command']
+    scheduled_at = request.form['scheduled_at']
 
     conn = get_db_connection()
     cursor = conn.cursor()
-    sql = """
+    cursor.execute("""
         UPDATE TASKS
            SET MachineID   = %s,
                TaskType    = %s,
-               LastCheckIn = %s
+               ScheduledAt = %s
          WHERE TaskID      = %s
-    """
-    cursor.execute(sql, (machine_id, command, last_checkin, task_id))
+    """, (machine_id, command, scheduled_at, task_id))
     conn.commit()
     conn.close()
 
     return redirect(url_for('tasks_page'))
 
+
+
+
 @app.route('/tasks/add_task', methods=['POST'])
 def add_new_task():
     if 'username' not in session:
         return redirect(url_for('login'))
-    
-    # Retrieve form data using the updated field name 'last_checkin'
-    machine_id   = request.form.get('machine_id')
-    command      = request.form.get('command')
-    last_checkin = request.form.get('last_checkin')
-    
-    # Insert into TASKS including the LastCheckIn column
+
+    machine_id   = request.form['machine_id']
+    command      = request.form['command']
+    scheduled_at = request.form['scheduled_at']
+
     conn = get_db_connection()
     cursor = conn.cursor()
-    insert_sql = """
-        INSERT INTO TASKS (TaskType, MachineID, LastCheckIn)
+    cursor.execute("""
+        INSERT INTO TASKS (TaskType, MachineID, ScheduledAt)
         VALUES (%s, %s, %s)
-    """
-    cursor.execute(insert_sql, (command, machine_id, last_checkin))
+    """, (command, machine_id, scheduled_at))
     conn.commit()
     conn.close()
-    
+
     return redirect(url_for('tasks_page'))
 
 
