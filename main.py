@@ -185,7 +185,7 @@ def update_task(task_id):
     # Optionally require admin or check privileges
     machine_id   = request.form.get('machine_id')
     command      = request.form.get('command')
-    scheduled_at = request.form.get('scheduled_at')  # e.g., '2025-02-28T10:15'
+    last_checkin = request.form.get('last_checkin')  # updated field name
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -193,10 +193,10 @@ def update_task(task_id):
         UPDATE TASKS
            SET MachineID   = %s,
                TaskType    = %s,
-               ScheduledAt = %s
+               LastCheckIn = %s
          WHERE TaskID      = %s
     """
-    cursor.execute(sql, (machine_id, command, scheduled_at, task_id))
+    cursor.execute(sql, (machine_id, command, last_checkin, task_id))
     conn.commit()
     conn.close()
 
@@ -495,7 +495,7 @@ def get_all_tasks_from_db():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-         SELECT TaskID, MachineID, TaskType, ScheduledAt
+         SELECT TaskID, MachineID, TaskType, LastCheckIn
            FROM TASKS
     """)
     tasks_data = cursor.fetchall()
@@ -505,7 +505,7 @@ def get_all_tasks_from_db():
              'id': task['TaskID'],              # Unique ID for each task (used for update/delete)
              'machine_id': task['MachineID'],     # The machine identifier
              'command': task['TaskType'],         # The command (or task type)
-             'scheduled_at': task['ScheduledAt']  # The scheduled date/time; ensure it’s stored as datetime (or format it in your template)
+             'last_checkin': task['LastCheckIn']  # The LastCheckIn date/time
          })
     conn.close()
     return tasks
@@ -535,18 +535,18 @@ def add_new_task():
         return redirect(url_for('login'))
     
     # Retrieve form data from tasks.html
-    machine_id = request.form.get('machine_id')
-    command = request.form.get('command')
-    scheduled_at = request.form.get('scheduled_at')
+    machine_id   = request.form.get('machine_id')
+    command      = request.form.get('command')
+    last_checkin = request.form.get('last_checkin')  # updated field name
     
-    # Insert into TASKS including the ScheduledAt column
+    # Insert into TASKS including the LastCheckIn column
     conn = get_db_connection()
     cursor = conn.cursor()
     insert_sql = """
-        INSERT INTO TASKS (TaskType, MachineID, ScheduledAt)
+        INSERT INTO TASKS (TaskType, MachineID, LastCheckIn)
         VALUES (%s, %s, %s)
     """
-    cursor.execute(insert_sql, (command, machine_id, scheduled_at))
+    cursor.execute(insert_sql, (command, machine_id, last_checkin))
     conn.commit()
     conn.close()
     
